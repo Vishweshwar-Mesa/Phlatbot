@@ -88,7 +88,7 @@ export default async function Home({ params }: PageProps<"/p/[token]">) {
               </span>
               <span className="row" style={{ gap: 6 }}>
                 {p.form_submitted_at ? <span className="pill ok">Constraints in</span> : <span className="pill warn">Waiting</span>}
-                {!p.telegram_user_id && <span className="pill">Telegram not linked</span>}
+                {!p.telegram_user_id && <span className="pill">No Telegram yet</span>}
               </span>
             </div>
           ))}
