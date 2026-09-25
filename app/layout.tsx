@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "FlatMatch",
+  title: "Phlatbot",
   description: "Make flat trade-offs visible before the conversation starts.",
   robots: { index: false, follow: false },
 };
