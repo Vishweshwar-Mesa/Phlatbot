@@ -33,7 +33,7 @@ export async function POST(request: Request) {
       { command: "form", description: "Your personal constraints form link" },
       { command: "reassess", description: "Re-score and publish now (once/hour)" },
       { command: "cancel", description: "Discard your unconfirmed listing draft" },
-      { command: "help", description: "How to use Phlatbot" },
+      { command: "help", description: "How to use Phlatmatch" },
     ],
   });
   const info = await post("getWebhookInfo", {});

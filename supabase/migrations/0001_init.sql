@@ -1,4 +1,4 @@
--- Phlatbot schema. Run once in the Supabase SQL editor (or `supabase db push`).
+-- Phlatmatch schema. Run once in the Supabase SQL editor (or `supabase db push`).
 -- All access goes through the server with the service role key; RLS is enabled
 -- with no policies so the anon/public key can read or write nothing.
 

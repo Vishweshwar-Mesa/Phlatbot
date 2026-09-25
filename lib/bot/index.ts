@@ -74,7 +74,7 @@ async function handleUnlinked(msg: TgMessage, cmd: { cmd: string; arg: string } 
     if (cmd?.cmd === "/start") {
       await sendMessage(
         msg.chat.id,
-        `Hi! Phlatbot is set up for ${namesList(ps)}.\nWhich one are you? Reply with your name.`,
+        `Hi! Phlatmatch is set up for ${namesList(ps)}.\nWhich one are you? Reply with your name.`,
       );
     }
     return;
@@ -149,7 +149,7 @@ async function sendHelp(me: Participant) {
   await sendMessage(
     me.telegram_user_id!,
     [
-      "Phlatbot commands:",
+      "Phlatmatch commands:",
       "• Forward or paste a listing here to add it",
       "• /status: who has filled in the form, and where listings stand",
       "• /form: your personal constraints form link",
