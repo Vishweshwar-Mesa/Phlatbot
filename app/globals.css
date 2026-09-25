@@ -24,7 +24,7 @@
   --bad-soft: #fbe8ec;
   --warn: #a8742a;
   --warn-soft: #fcf1de;
-  --tabbar: rgba(255, 255, 255, 0.97);
+  --tabbar: #ffffff;
   --shadow: 0 1px 2px rgba(42, 41, 64, 0.04), 0 8px 24px rgba(42, 41, 64, 0.06);
   --radius: 18px;
   color-scheme: light;
@@ -54,7 +54,7 @@
   --bad-soft: #432630;
   --warn: #efc27a;
   --warn-soft: #3d3120;
-  --tabbar: rgba(31, 31, 45, 0.97);
+  --tabbar: #1f1f2d;
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.25);
   color-scheme: dark;
 }
