@@ -1,11 +1,21 @@
-export default function Home() {
+import PageHeader from "@/app/components/PageHeader";
+
+export default function Landing() {
   return (
-    <main className="container">
-      <h1>Phlatmatch</h1>
-      <p>
-        A shared flat-search helper for Riya, Meera and Kavita. Message @Phlatbot on Telegram with /start to get your
-        personal constraints form.
-      </p>
-    </main>
+    <>
+      <PageHeader
+        title="Phlatmatch"
+        subtitle="One form each, filled in separately. Then two or three flats you can actually discuss."
+      />
+      <main className="container">
+        <section className="card">
+          <h2>Private to Riya, Meera and Kavita</h2>
+          <p className="muted">
+            Open the personal link you were sent. It&apos;s your own app for constraints, the daily shortlist and your
+            private vote. Listings go to @Phlatbot on Telegram.
+          </p>
+        </section>
+      </main>
+    </>
   );
 }

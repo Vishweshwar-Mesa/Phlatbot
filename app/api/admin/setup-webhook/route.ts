@@ -28,12 +28,8 @@ export async function POST(request: Request) {
   });
   const commands = await post("setMyCommands", {
     commands: [
-      { command: "start", description: "Link your Telegram and get your form" },
-      { command: "status", description: "Who's done, and where listings stand" },
-      { command: "form", description: "Your personal constraints form link" },
-      { command: "reassess", description: "Re-score and publish now (once/hour)" },
-      { command: "cancel", description: "Discard your unconfirmed listing draft" },
-      { command: "help", description: "How to use Phlatmatch" },
+      { command: "help", description: "How to send a listing" },
+      { command: "cancel", description: "Discard your unconfirmed listing" },
     ],
   });
   const info = await post("getWebhookInfo", {});

@@ -1,10 +1,9 @@
 import { after } from "next/server";
 import { approvalValid } from "@/lib/approval";
 import { db, must } from "@/lib/db";
-import { namesList, participantByToken, readiness } from "@/lib/participants";
+import { participantByToken, readiness } from "@/lib/participants";
 import { onPreferencesSaved } from "@/lib/pipeline";
 import { type FormPayload, validatePrefs } from "@/lib/prefsValidation";
-import { sendMessage } from "@/lib/telegram";
 
 export const maxDuration = 60;
 
@@ -40,18 +39,8 @@ export async function POST(request: Request, ctx: RouteContext<"/api/form/[token
 
   const { done, waiting } = await readiness();
 
-  after(async () => {
-    await onPreferencesSaved(me.id, firstSubmission);
-    if (me.telegram_user_id) {
-      const progress = waiting.length
-        ? `${done.length}/3 done, waiting on ${namesList(waiting)}.`
-        : "3/3 done ✅ Everyone's constraints are in.";
-      await sendMessage(
-        me.telegram_user_id,
-        `${firstSubmission ? "Your constraints are saved." : "Your constraints were updated."} ${progress}`,
-      ).catch((e) => console.error("form DM failed", e));
-    }
-  });
+  // Kick off matching / re-scoring after the response (onboarding-complete trigger, or re-score on edit).
+  after(() => onPreferencesSaved(me.id, firstSubmission));
 
   return Response.json({ ok: true, firstSubmission, done: done.length, waiting: waiting.map((w) => w.name) });
 }

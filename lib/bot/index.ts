@@ -1,16 +1,13 @@
 import "server-only";
 import { db, must } from "../db";
-import { appUrl } from "../env";
-import {
-  allParticipants,
-  namesList,
-  participantByTelegram,
-  readiness,
-} from "../participants";
+import { BOT_USERNAME, tokenFromConnectCode } from "../links";
+import { participantByTelegram, participantByToken } from "../participants";
 import { answerCallback, sendMessage, TgCallbackQuery, TgMessage, TgUpdate } from "../telegram";
 import type { Participant } from "../types";
 
-/** Entry point for one (already de-duplicated) Telegram update. */
+// Telegram is only for listings: submitting them and answering questions about them.
+// Everything else (constraints, status, shortlist, votes) lives in the web app.
+
 export async function handleUpdate(update: TgUpdate): Promise<void> {
   if (update.message) return handleMessage(update.message);
   if (update.callback_query) return handleCallback(update.callback_query);
@@ -19,142 +16,83 @@ export async function handleUpdate(update: TgUpdate): Promise<void> {
 function command(text: string | undefined): { cmd: string; arg: string } | null {
   if (!text?.startsWith("/")) return null;
   const [head, ...rest] = text.trim().split(/\s+/);
-  // Strip the "@BotName" suffix Telegram adds in groups.
   return { cmd: head.split("@")[0].toLowerCase(), arg: rest.join(" ").trim() };
 }
 
 async function handleMessage(msg: TgMessage): Promise<void> {
   const from = msg.from;
-  if (!from) return;
-  const me = await participantByTelegram(from.id);
+  // The bot never reads groups; everything happens in a private chat.
+  if (!from || msg.chat.type !== "private") return;
+
   const cmd = command(msg.text);
+  if (cmd?.cmd === "/start" && cmd.arg) return connect(msg, cmd.arg);
 
-  // Groups: the bot never reads group chatter. The only group action is an explicit
-  // /chatid from a known participant, used once to configure TELEGRAM_GROUP_CHAT_ID.
-  if (msg.chat.type !== "private") {
-    if (me && cmd?.cmd === "/chatid") {
-      await sendMessage(msg.chat.id, `This group's chat id is: ${msg.chat.id}`);
-    }
-    return;
-  }
-
-  // Unlinked senders can only claim one of the three seeded identities.
-  if (!me) return handleUnlinked(msg, cmd);
+  const me = await participantByTelegram(from.id);
+  // Unknown senders are ignored entirely: no reply, nothing stored.
+  if (!me) return;
 
   if (cmd) {
-    switch (cmd.cmd) {
-      case "/start":
-        return sendFormLink(me, true);
-      case "/form":
-        return sendFormLink(me, false);
-      case "/status":
-        return sendStatus(me);
-      case "/help":
-        return sendHelp(me);
-      default: {
-        const { handleListingCommand } = await import("./listing");
-        if (await handleListingCommand(me, msg, cmd.cmd)) return;
-        return sendHelp(me);
-      }
-    }
+    if (cmd.cmd === "/start" || cmd.cmd === "/help") return sendHelp(me);
+    const { handleListingCommand } = await import("./listing");
+    if (await handleListingCommand(me, msg, cmd.cmd)) return;
+    return sendHelp(me);
   }
 
   const { handleListingMessage } = await import("./listing");
   return handleListingMessage(me, msg);
 }
 
-async function handleUnlinked(msg: TgMessage, cmd: { cmd: string; arg: string } | null) {
-  const ps = await allParticipants();
-  const unclaimed = ps.filter((p) => p.telegram_user_id === null);
-  // Once all three are linked, strangers get no response at all.
-  if (unclaimed.length === 0) return;
+/** One-tap link from the app's "Connect Telegram" button: t.me/<bot>?start=<code>. */
+async function connect(msg: TgMessage, code: string) {
+  const token = tokenFromConnectCode(code);
+  const p = token ? await participantByToken(token) : null;
+  if (!p) return; // not a valid code: behave like any unknown sender
 
-  const typed = cmd?.cmd === "/start" ? cmd.arg : cmd ? "" : (msg.text ?? "").trim();
-  if (!typed) {
-    if (cmd?.cmd === "/start") {
-      await sendMessage(
-        msg.chat.id,
-        `Hi! Phlatmatch is set up for ${namesList(ps)}.\nWhich one are you? Reply with your name.`,
-      );
-    }
+  const tgId = msg.from!.id;
+  if (p.telegram_user_id === tgId) {
+    await sendMessage(tgId, `You're already connected as ${p.name}. Forward or paste a listing any time.`);
     return;
   }
-
-  const match = ps.find((p) => p.name.toLowerCase() === typed.toLowerCase());
-  if (!match) {
-    await sendMessage(
-      msg.chat.id,
-      `"${typed}" isn't one of ${namesList(ps)}. Reply with your name exactly as listed.`,
-    );
+  if (p.telegram_user_id !== null) {
+    await sendMessage(tgId, `${p.name}'s app is already connected to a different Telegram account.`);
     return;
   }
-  if (match.telegram_user_id !== null) {
-    await sendMessage(
-      msg.chat.id,
-      `${match.name} is already linked to another Telegram account. If that's wrong, ask the others to check.`,
-    );
+  const already = await participantByTelegram(tgId);
+  if (already) {
+    await sendMessage(tgId, `This Telegram account is already connected as ${already.name}.`);
     return;
   }
-  // Conditional update so two accounts can't race for the same name.
+  // Conditional update so a second account can't race in.
   const linked = must(
-    await db()
-      .from("participants")
-      .update({ telegram_user_id: msg.from!.id })
-      .eq("id", match.id)
-      .is("telegram_user_id", null)
-      .select(),
+    await db().from("participants").update({ telegram_user_id: tgId }).eq("id", p.id).is("telegram_user_id", null).select(),
   ) as Participant[];
   if (linked.length === 0) {
-    await sendMessage(msg.chat.id, `${match.name} was just claimed by another account.`);
+    await sendMessage(tgId, `${p.name}'s app was just connected to another account.`);
     return;
   }
-  await sendFormLink(linked[0], true);
-}
-
-async function sendFormLink(p: Participant, welcome: boolean) {
-  const url = appUrl(`/form/${p.form_token}`);
-  const lines = [
-    welcome ? `You're linked as ${p.name}. 👋` : null,
-    p.form_submitted_at
-      ? `Your constraints form (you can edit it any time):\n${url}`
-      : `Please fill in your constraints form. It's private to you:\n${url}`,
-    welcome
-      ? "\nTo add a listing, forward or paste it here. /status shows progress, /help lists commands."
-      : null,
-  ];
-  await sendMessage(p.telegram_user_id!, lines.filter(Boolean).join("\n"));
-}
-
-async function sendStatus(me: Participant) {
-  const { done, waiting, ready } = await readiness();
-  const lines = [
-    ready
-      ? `3/3 forms done ✅ Matching is open.`
-      : `${done.length}/3 forms done, waiting on ${namesList(waiting)}.`,
-  ];
-  const counts = must(await db().from("listings").select("status")) as { status: string }[];
-  const by = (s: string) => counts.filter((c) => c.status === s).length;
-  lines.push(
-    "",
-    `Listings: ${by("awaiting_preferences")} waiting for everyone's forms, ` +
-      `${by("pending")} queued for the next digest, ` +
-      `${by("assessed_unpublished")} assessed and ready for the next digest, ` +
-      `${by("published")} published.`,
+  await sendMessage(
+    tgId,
+    [
+      `Connected ✅ You're ${p.name}.`,
+      "",
+      "Whenever you find a flat, forward the listing here or paste its text. I'll read it, ask about anything it " +
+        "doesn't say, and show you a summary to confirm before it goes into the pool.",
+      "",
+      "Everything else (your constraints, the shortlist and voting) is in your Phlatmatch app.",
+    ].join("\n"),
   );
-  if (by("draft")) lines.push(`${by("draft")} draft(s) are still waiting for their submitter to confirm.`);
-  await sendMessage(me.telegram_user_id!, lines.join("\n"));
 }
 
 async function sendHelp(me: Participant) {
   await sendMessage(
     me.telegram_user_id!,
     [
-      "Phlatmatch commands:",
+      `Hi ${me.name}! I only handle listings:`,
       "• Forward or paste a listing here to add it",
-      "• /status: who has filled in the form, and where listings stand",
-      "• /form: your personal constraints form link",
-      "• /reassess: re-score everything unpublished and publish it now (once per hour)",
-      "• /cancel: discard your unconfirmed listing draft",
+      "• I'll ask about anything it doesn't mention, then show a summary to confirm",
+      "• /cancel discards a listing you haven't confirmed yet",
+      "",
+      `Your constraints, the shortlist and voting are in your Phlatmatch app. @${BOT_USERNAME} never picks a flat for you.`,
     ].join("\n"),
   );
 }
