@@ -111,7 +111,7 @@ export function hardFilter(
 const STOP = new Set([
   "the", "a", "an", "and", "or", "of", "to", "in", "on", "with", "for", "near", "nearby", "proximity", "close",
   "good", "reliable", "reliability", "supply", "locality", "society", "amenities", "building", "flat", "compliant",
-  "natural", "public", "area", "access", "lots", "plenty", "e", "g", "eg", "etc", "is", "has", "have",
+  "natural", "public", "area", "access", "lots", "plenty", "e", "g", "eg", "etc", "is", "has", "have", "my", "our", "me",
 ]);
 const SYNONYMS: Record<string, string[]> = {
   light: ["sunlight", "well lit", "well-lit", "bright", "natural light", "light"],
@@ -162,6 +162,15 @@ export function matchSoft(label: string, s: ListingStructured): { outcome: SoftO
   const l = label.toLowerCase();
   const rule = FIELD_RULES.find((r) => r.test.test(l));
   if (rule) return rule.check(s);
+  // "X and Y" means both: every part must be evidenced, otherwise the listing doesn't cover it.
+  const parts = l.split(/\s+and\s+|\s*&\s*/).map((p) => p.trim()).filter(Boolean);
+  if (parts.length > 1) {
+    const results = parts.map((p) => matchSoft(p, s));
+    const miss = results.find((r) => r.outcome === "not_matched");
+    if (miss) return miss;
+    if (results.every((r) => r.outcome === "matched")) return { outcome: "matched", evidence: results.map((r) => r.evidence).join("; ") };
+    return { outcome: "no_data", evidence: "Not every part is mentioned in the listing" };
+  }
   const notes = (s.other_notes ?? "").toLowerCase();
   if (!notes) return { outcome: "no_data", evidence: "Not mentioned in the listing" };
   for (const k of keywordsFor(label)) {
