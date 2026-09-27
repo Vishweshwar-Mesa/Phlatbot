@@ -230,8 +230,8 @@ export default function FormClient({ token, initial }: { token: string; initial:
             placeholder={"One per line, e.g.\nWhitefield\nElectronic City"}
           />
           <div className="hint">
-            Optional. If a listing&apos;s area only loosely resembles one of these, the app asks you to confirm.
-            It&apos;s never decided silently.
+            Optional. Commute limits go here too: e.g. areas too far from your office, gym or family. If a
+            listing&apos;s area only loosely resembles one of these, the app asks you to confirm. It&apos;s never decided silently.
           </div>
         </div>
 
