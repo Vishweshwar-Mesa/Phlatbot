@@ -31,6 +31,7 @@ export default async function Shortlist({ params, searchParams }: PageProps<"/p/
   return (
     <>
       <PageHeader
+        eyebrow="Vote privately"
         title="Shortlist"
         subtitle={batch?.published_at ? `Published ${formatIst(batch.published_at)}. Votes stay sealed until all three are in.` : "Shortlists publish daily at 7:05pm."}
         who={me.name}

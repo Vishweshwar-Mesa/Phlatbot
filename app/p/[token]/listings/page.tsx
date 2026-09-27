@@ -39,7 +39,7 @@ export default async function ListingsPage({ params }: PageProps<"/p/[token]/lis
 
   return (
     <>
-      <PageHeader title="Listings" subtitle="Everything in the pool. Forward new ones to @Phlatbot." who={me.name} />
+      <PageHeader eyebrow="The pool" title="Listings" subtitle="Everything in the pool. Forward new ones to @Phlatbot." who={me.name} />
       <main className="container">
         <ListingsClient cards={cards} />
       </main>

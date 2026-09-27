@@ -32,6 +32,11 @@ const inr = (n: number | null) => (n == null ? "not confirmed" : "₹" + Math.ro
 const yn = (v: boolean | null, label: string) => (v === null ? `${label} ?` : v ? label : `No ${label.toLowerCase()}`);
 const STATE_TITLE = { y: "qualifies", n: "disqualified", u: "qualifies, something not confirmed", x: "not scored yet" };
 const FILTERS = ["All", "All 3 qualify", "Not scored yet"] as const;
+function band(id: string) {
+  let h = 0;
+  for (const ch of id) h = (h * 31 + ch.charCodeAt(0)) % 360;
+  return `linear-gradient(135deg,hsl(${h} 55% 82%),hsl(${(h + 70) % 360} 60% 86%))`;
+}
 
 export default function ListingsClient({ cards }: { cards: CardData[] }) {
   const [mode, setMode] = useState<"list" | "map">("list");
@@ -70,6 +75,7 @@ export default function ListingsClient({ cards }: { cards: CardData[] }) {
 
   const card = (c: CardData) => (
     <article id={`l-${c.id}`} key={c.id} className={`card lcard${c.id === selected ? " sel" : ""}`} onClick={() => setSelected(c.id)}>
+      <div className="photo-band" style={{ background: band(c.id) }} aria-hidden />
       <div className="rent-line">
         <span className="big">{inr(c.rent)}</span>
         {c.rent !== null && <span className="muted small">/mo · {inr(c.rent / 3)} each</span>}
@@ -127,7 +133,7 @@ export default function ListingsClient({ cards }: { cards: CardData[] }) {
           {sel ? <div className="map-card-sheet">{card(sel)}</div> : <p className="muted small" style={{ padding: "0 6px" }}>Tap a pin to see that flat.</p>}
         </section>
       ) : (
-        shown.map(card)
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 14 }}>{shown.map(card)}</div>
       )}
     </>
   );

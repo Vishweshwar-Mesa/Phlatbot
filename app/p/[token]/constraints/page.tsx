@@ -38,6 +38,7 @@ export default async function ConstraintsPage({ params }: PageProps<"/p/[token]/
   return (
     <>
       <PageHeader
+        eyebrow="Only you see this"
         title="Your constraints"
         subtitle="Fill this in on your own. The others never see your answers, only how listings score against them."
         who={me.name}
