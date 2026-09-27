@@ -22,13 +22,9 @@ export async function listingViews(ids?: string[]): Promise<ListingView[]> {
   }
   const listings = must(await q) as Listing[];
   if (!listings.length) return [];
-  const [assessments, people] = await Promise.all([
-    db().from("assessments").select("*").in("listing_id", listings.map((l) => l.id)),
-    db().from("participants").select("name, telegram_user_id"),
-  ]);
-  const aBy = new Map((must(assessments) as AssessmentRow[]).map((a) => [a.listing_id, a]));
-  const names = new Map((must(people) as { name: string; telegram_user_id: number | null }[]).map((p) => [p.telegram_user_id, p.name]));
-  const views = listings.map((l) => ({ ...l, assessment: aBy.get(l.id) ?? null, submitter: names.get(l.submitted_by_telegram_id) ?? null }));
+  const assessments = must(await db().from("assessments").select("*").in("listing_id", listings.map((l) => l.id))) as AssessmentRow[];
+  const aBy = new Map(assessments.map((a) => [a.listing_id, a]));
+  const views = listings.map((l) => ({ ...l, assessment: aBy.get(l.id) ?? null, submitter: (l as Listing & { submitted_by_name?: string | null }).submitted_by_name ?? null }));
   return ids ? ids.map((id) => views.find((v) => v.id === id)!).filter(Boolean) : views;
 }
 

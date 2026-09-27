@@ -29,7 +29,7 @@ export default async function PersonalAppLayout({ children, params }: LayoutProp
       return !isRevealed(batch, vs).revealed && !vs.some((v) => v.participant_id === me.id);
     }).length;
   }
-  const homeAlerts = Number(!me.form_submitted_at) + Number(!me.telegram_user_id);
+  const homeAlerts = Number(!me.form_submitted_at);
 
   return (
     <div className="shell">

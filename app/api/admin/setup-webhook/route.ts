@@ -29,7 +29,7 @@ export async function POST(request: Request) {
   const commands = await post("setMyCommands", {
     commands: [
       { command: "help", description: "How to send a listing" },
-      { command: "cancel", description: "Discard your unconfirmed listing" },
+      { command: "cancel", description: "Discard the listing I'm asking about" },
     ],
   });
   const info = await post("getWebhookInfo", {});

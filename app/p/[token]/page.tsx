@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import PageHeader from "@/app/components/PageHeader";
 import { db, must } from "@/lib/db";
-import { BOT_USERNAME, telegramConnectUrl } from "@/lib/links";
+import { BOT_USERNAME } from "@/lib/links";
 import { allParticipants, participantByToken } from "@/lib/participants";
 import { digestCutoff, formatIst, istDate } from "@/lib/time";
 import { inr, listingViews } from "@/lib/views";
@@ -115,19 +115,11 @@ export default async function Dashboard({ params }: PageProps<"/p/[token]">) {
           </section>
 
           {!me.form_submitted_at && (
-            <section className="card highlight span-6">
+            <section className="card highlight span-12">
               <span className="eyebrow">Needs your answer</span>
               <h2 style={{ margin: "4px 0" }}>Fill in your constraints</h2>
               <p className="muted small">Takes about 3 minutes. The others never see your answers.</p>
               <Link className="btn primary" href={`/p/${token}/constraints`}>Start</Link>
-            </section>
-          )}
-          {!me.telegram_user_id && (
-            <section className="card highlight span-6">
-              <span className="eyebrow">One-time setup</span>
-              <h2 style={{ margin: "4px 0" }}>Connect Telegram</h2>
-              <p className="muted small">You send listings to @{BOT_USERNAME}. One tap links your account.</p>
-              <a className="btn primary" href={telegramConnectUrl(token)}>Open @{BOT_USERNAME} and connect</a>
             </section>
           )}
 
