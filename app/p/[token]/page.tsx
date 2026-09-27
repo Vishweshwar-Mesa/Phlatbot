@@ -25,6 +25,7 @@ function clock() {
   const next = today > now ? today : new Date(today.getTime() + 24 * 3600e3);
   return {
     weekAgo: now.getTime() - 7 * 24 * 3600e3,
+    recentCutoff: now.getTime() - 24 * 3600e3,
     mins: Math.max(0, Math.round((next.getTime() - now.getTime()) / 60000)),
     afterCutoff: now.getTime() > digestCutoff(now).getTime(),
     weekday: new Intl.DateTimeFormat("en-IN", { weekday: "long", timeZone: "Asia/Kolkata" }).format(now),
@@ -49,7 +50,7 @@ export default async function Dashboard({ params }: PageProps<"/p/[token]">) {
   const waiting = people.filter((p) => !p.form_submitted_at);
 
   const inPool = listings.filter((l) => l.status !== "published");
-  const { weekAgo, mins, afterCutoff, weekday } = clock();
+  const { weekAgo, mins, afterCutoff, weekday, recentCutoff } = clock();
   const thisWeek = listings.filter((l) => new Date(l.submitted_at).getTime() > weekAgo).length;
   const shares = listings.map((l) => l.structured.monthly_rent).filter((r): r is number => r !== null).map((r) => r / 3).sort((a, b) => a - b);
   const median = shares.length ? shares[Math.floor(shares.length / 2)] : null;
@@ -164,7 +165,9 @@ export default async function Dashboard({ params }: PageProps<"/p/[token]">) {
             {recent.length === 0 && <p className="muted small">No listings yet. Forward one to @{BOT_USERNAME}.</p>}
             {recent.map((l) => (
               <Link key={l.id} className="mini" href={`/p/${token}/listings`}>
-                <span className="thumb" style={{ background: band(l.id) }} />
+                <span className="thumb" style={{ background: band(l.id), position: "relative" }}>
+                  {recentCutoff < new Date(l.confirmed_at ?? l.submitted_at).getTime() && <span className="new-tag small-tag">New</span>}
+                </span>
                 <span className="grow">
                   <span className="t" style={{ display: "block" }}>{l.structured.normalized_locality ?? "Locality not confirmed"}</span>
                   <span className="muted small">{l.structured.monthly_rent === null ? "Rent not confirmed" : `${inr(l.structured.monthly_rent)}/mo`}{l.submitter ? ` · ${l.submitter === "From the brief" ? "from the brief" : `from ${l.submitter}`}` : ""}</span>

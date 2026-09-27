@@ -30,6 +30,7 @@ export default async function ListingsPage({ params }: PageProps<"/p/[token]/lis
       lng: s.longitude ?? null,
       submitter: v.submitter,
       status: STATUS_LABEL[v.status] ?? v.status,
+      submittedAt: v.confirmed_at ?? v.submitted_at,
       qualify: people.map((p) => {
         const a = v.assessment?.per_person.find((x) => x.participant_id === p.id);
         return { name: p.name, state: !a ? "x" : a.status === "disqualified" ? "n" : a.unconfirmed.length || a.flagged_ambiguous.length ? "u" : "y" };
@@ -42,7 +43,7 @@ export default async function ListingsPage({ params }: PageProps<"/p/[token]/lis
     <>
       <PageHeader eyebrow="The pool" title="Listings" subtitle="Everything in the pool. Forward new ones to @Phlatbot." who={me.name} />
       <main className="container">
-        <ListingsClient cards={cards} />
+        <ListingsClient cards={cards} storageKey={`pm-seen-${me.id}`} />
       </main>
     </>
   );

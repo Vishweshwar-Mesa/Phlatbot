@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { MapPin } from "@/app/components/ListingsMap";
 
 const ListingsMap = dynamic(() => import("@/app/components/ListingsMap"), {
@@ -25,6 +25,7 @@ export interface CardData {
   lng: number | null;
   submitter: string | null;
   status: string;
+  submittedAt: string;
   qualify: { name: string; state: "y" | "n" | "u" | "x" }[];
   qualifyCount: number | null;
 }
@@ -32,24 +33,52 @@ export interface CardData {
 const inr = (n: number | null) => (n == null ? "not confirmed" : "₹" + Math.round(n).toLocaleString("en-IN"));
 const yn = (v: boolean | null, label: string) => (v === null ? `${label} ?` : v ? label : `No ${label.toLowerCase()}`);
 const STATE_TITLE = { y: "qualifies", n: "disqualified", u: "qualifies, something not confirmed", x: "not scored yet" };
-const FILTERS = ["All", "All 3 qualify", "Not scored yet"] as const;
+const FILTERS = ["All", "New", "All 3 qualify", "Not scored yet"] as const;
+const DAY = 24 * 3600e3;
+
+function ago(iso: string, now: number): string {
+  const m = Math.max(0, Math.round((now - new Date(iso).getTime()) / 60000));
+  if (m < 1) return "just now";
+  if (m < 60) return `${m} min ago`;
+  const h = Math.round(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.round(h / 24);
+  return d === 1 ? "yesterday" : `${d} days ago`;
+}
 function band(id: string) {
   let h = 0;
   for (const ch of id) h = (h * 31 + ch.charCodeAt(0)) % 360;
   return `linear-gradient(135deg,hsl(${h} 55% 82%),hsl(${(h + 70) % 360} 60% 86%))`;
 }
 
-export default function ListingsClient({ cards }: { cards: CardData[] }) {
+export default function ListingsClient({ cards, storageKey }: { cards: CardData[]; storageKey: string }) {
   const [mode, setMode] = useState<"list" | "map">("list");
+  // "New" = arrived since this person last opened Listings on this device (first visit: last 24h).
+  const [seenBefore, setSeenBefore] = useState<number | null>(null);
+  const [now, setNow] = useState<number>(0);
+  useEffect(() => {
+    const t = Date.now();
+    let prev = t - DAY;
+    try {
+      const v = Number(localStorage.getItem(storageKey));
+      if (v > 0) prev = v;
+      localStorage.setItem(storageKey, String(t));
+    } catch {}
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reading the device's last-visit time once on mount
+    setSeenBefore(prev);
+    setNow(t);
+  }, [storageKey]);
+  const isNew = useCallback((c: CardData) => seenBefore !== null && new Date(c.submittedAt).getTime() > seenBefore, [seenBefore]);
+  const newCount = cards.filter(isNew).length;
   const [filter, setFilter] = useState<(typeof FILTERS)[number]>("All");
   const [selected, setSelected] = useState<string | null>(null);
 
   const shown = useMemo(
     () =>
       cards.filter((c) =>
-        filter === "All" ? true : filter === "All 3 qualify" ? c.qualifyCount === 3 : c.qualifyCount === null,
+        filter === "All" ? true : filter === "New" ? isNew(c) : filter === "All 3 qualify" ? c.qualifyCount === 3 : c.qualifyCount === null,
       ),
-    [cards, filter],
+    [cards, filter, isNew],
   );
   const pins: MapPin[] = useMemo(
     () =>
@@ -76,7 +105,10 @@ export default function ListingsClient({ cards }: { cards: CardData[] }) {
 
   const card = (c: CardData) => (
     <article id={`l-${c.id}`} key={c.id} className={`card lcard${c.id === selected ? " sel" : ""}`} onClick={() => setSelected(c.id)}>
-      <div className="photo-band" style={{ background: band(c.id) }} aria-hidden />
+      <div className="photo-band" style={{ background: band(c.id) }}>
+        {isNew(c) && <span className="new-tag">New</span>}
+        {now > 0 && <span className="age-tag">Added {ago(c.submittedAt, now)}</span>}
+      </div>
       <div className="rent-line">
         <span className="big">{inr(c.rent)}</span>
         {c.rent !== null && <span className="muted small">/mo · {inr(c.rent / 3)} each</span>}
@@ -119,7 +151,7 @@ export default function ListingsClient({ cards }: { cards: CardData[] }) {
         <div className="chip-list">
           {FILTERS.map((f) => (
             <button key={f} type="button" className={`pill${filter === f ? " accent" : ""}`} style={{ cursor: "pointer" }} onClick={() => setFilter(f)}>
-              {f}
+              {f === "New" && newCount ? `New (${newCount})` : f}
             </button>
           ))}
         </div>
