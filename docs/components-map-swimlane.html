@@ -1,0 +1,100 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Phlatmatch components map (swimlane)</title>
+<style>body{margin:0;background:#fff} svg{display:block;font-family:Arial,Helvetica,sans-serif}</style></head>
+<body><svg id="m" xmlns="http://www.w3.org/2000/svg"></svg>
+<script>
+const W = 1700, TOP = 70, HEAD = 46, ACTOR = 170, ROWH = 96;
+const COLS = ["Trigger", "Input", "Context", "Processing", "AI", "Output"];
+const COLW = (W - 40 - ACTOR) / COLS.length;
+const ROWS = [
+  { name: "Riya · Meera · Kavita", sub: "Flatmates", bg: "#e9edfb", box: ["#dde5fb", "#4f5bd5"] },
+  { name: "Telegram", sub: "@Phlatbot", bg: "#eef2fc", box: ["#dbe6fb", "#3b6fd9"] },
+  { name: "Web app", sub: "Next.js on Vercel", bg: "#f1eefb", box: ["#e7e0fb", "#7b5bd6"] },
+  { name: "Link reader + OSM", sub: "Context", bg: "#eef7f1", box: ["#dcf5e6", "#1f9d55"] },
+  { name: "Gemini Flash", sub: "Extract · narrate", bg: "#fbf8e8", box: ["#fbf1c9", "#d19a0f"] },
+  { name: "Supabase", sub: "Database", bg: "#eaf4fb", box: ["#d9ecfa", "#2b86c5"] },
+  { name: "Matching engine", sub: "Code, no AI", bg: "#f3faf6", box: ["#e1f5ea", "#2f7558"] },
+  { name: "Review Gate", sub: "The three flatmates", bg: "#fff8ec", box: ["#fff1e4", "#ea6a17"], gate: true },
+];
+const H = TOP + HEAD + ROWS.length * ROWH + 60;
+const svg = document.getElementById("m");
+svg.setAttribute("width", W); svg.setAttribute("height", H); svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+const NS = "http://www.w3.org/2000/svg";
+const el = (t, a, p = svg) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); p.appendChild(e); return e; };
+const txt = (x, y, s, o = {}) => { const t = el("text", { x, y, "font-size": o.size || 12, "font-weight": o.w || 400, fill: o.fill || "#1e293b", "text-anchor": o.anchor || "middle" }); t.textContent = s; return t; };
+const X0 = 20, Y0 = TOP;
+
+// title
+txt(W / 2, 40, "Phlatmatch · Riya, Meera & Kavita / Flat Search — Components Map", { size: 17, w: 700 });
+
+// header
+el("rect", { x: X0, y: Y0, width: W - 40, height: HEAD, fill: "#1f2937" });
+el("rect", { x: X0, y: Y0, width: ACTOR, height: HEAD, fill: "#111827" });
+txt(X0 + ACTOR / 2, Y0 + 28, "Actor", { fill: "#e5e7eb", size: 13 });
+COLS.forEach((c, i) => txt(X0 + ACTOR + COLW * i + COLW / 2, Y0 + 28, c, { fill: "#fff", w: 700, size: 14 }));
+
+// rows
+ROWS.forEach((r, i) => {
+  const y = Y0 + HEAD + i * ROWH;
+  el("rect", { x: X0 + ACTOR, y, width: W - 40 - ACTOR, height: ROWH, fill: r.bg });
+  el("rect", { x: X0, y, width: ACTOR, height: ROWH, fill: "#1f2937" });
+  txt(X0 + ACTOR / 2, y + ROWH / 2 - 2, r.name, { fill: "#fff", w: 700, size: 13 });
+  txt(X0 + ACTOR / 2, y + ROWH / 2 + 16, r.sub, { fill: "#9ca3af", size: 11 });
+  for (let c = 1; c < COLS.length; c++) el("line", { x1: X0 + ACTOR + COLW * c, y1: y, x2: X0 + ACTOR + COLW * c, y2: y + ROWH, stroke: "#e2e8f0" });
+  el("line", { x1: X0, y1: y + ROWH, x2: W - 20, y2: y + ROWH, stroke: "#dbe1ea" });
+  if (r.gate) el("rect", { x: X0 + ACTOR, y: y + 1, width: W - 40 - ACTOR - 1, height: ROWH - 2, fill: "none", stroke: "#f59e0b", "stroke-width": 2, "stroke-dasharray": "8 6" });
+});
+
+// boxes
+const BW = COLW - 34, BH = 72;
+const B = {};
+function box(id, row, col, lines) {
+  const r = ROWS[row];
+  const x = X0 + ACTOR + COLW * col + (COLW - BW) / 2, y = Y0 + HEAD + row * ROWH + (ROWH - BH) / 2;
+  el("rect", { x, y, width: BW, height: BH, rx: 6, fill: r.box[0], stroke: r.box[1], "stroke-width": 1.6 });
+  const start = y + BH / 2 - (lines.length - 1) * 7.5 + 4;
+  lines.forEach((l, i) => txt(x + BW / 2, start + i * 15, l, { size: 11.5 }));
+  B[id] = { x, y, w: BW, h: BH, cx: x + BW / 2, cy: y + BH / 2 };
+}
+box("constraints", 0, 0, ["Each fills in constraints", "separately · forwards", "listings they find"]);
+box("bot", 1, 1, ["Receives listing text or link", "Asks missing details", "in one message"]);
+box("form", 2, 1, ["Constraints form: hard", "minimums + 1–5 weighted", "preferences (per person)"]);
+box("reader", 3, 2, ["Reads the listing page", "Geocodes locality", "for the map pin"]);
+box("extract", 4, 2, ["Extracts listing fields", "Unstated = null", "(never guessed)"]);
+box("store", 5, 2, ["Stores constraints + listings", "Readiness gate: nothing", "matched until 3/3"]);
+box("match", 6, 3, ["Hard filter pass/fail → weighted", "score → rank top 3", "Runs on 3rd form · 7:05pm IST"]);
+box("narrate", 4, 4, ["Writes who gets what /", "who compromises, from", "numbers code computed"]);
+box("review", 7, 5, ["Top 3: each person's gets /", "gives up · sealed votes", "→ reveal together → decide"]);
+
+// connectors: dashed grey, green dot at the start, arrow at the end
+const defs = el("defs", {});
+const mk = el("marker", { id: "a", viewBox: "0 0 10 10", refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: "auto" }, defs);
+el("path", { d: "M0,0 L10,5 L0,10 z", fill: "#64748b" }, mk);
+function link(pts) {
+  el("path", { d: "M" + pts.map((p) => p.join(",")).join(" L"), fill: "none", stroke: "#64748b", "stroke-width": 1.5, "stroke-dasharray": "5 4", "marker-end": "url(#a)" });
+  el("circle", { cx: pts[0][0], cy: pts[0][1], r: 4.5, fill: "#22c55e", stroke: "#fff", "stroke-width": 1.2 });
+}
+const b = B;
+// flatmates -> bot (listings) and -> form (constraints)
+link([[b.constraints.x + b.constraints.w, b.constraints.cy], [b.bot.cx, b.constraints.cy], [b.bot.cx, b.bot.y]]);
+link([[b.constraints.cx, b.constraints.y + b.constraints.h], [b.constraints.cx, b.form.cy], [b.form.x, b.form.cy]]);
+// bot -> link reader (links) and -> extraction
+link([[b.bot.x + b.bot.w, b.bot.cy], [b.reader.cx, b.bot.cy], [b.reader.cx, b.reader.y]]);
+link([[b.reader.x + b.reader.w, b.reader.cy], [b.reader.x + b.reader.w + 14, b.reader.cy], [b.reader.x + b.reader.w + 14, b.extract.cy], [b.extract.x + b.extract.w, b.extract.cy]]);
+const gap = X0 + ACTOR + COLW * 2; // corridor between the Input and Context columns
+link([[b.bot.x + b.bot.w, b.bot.cy + 22], [gap - 8, b.bot.cy + 22], [gap - 8, b.extract.cy - 12], [b.extract.x, b.extract.cy - 12]]);
+// form -> store; extraction -> store
+link([[b.form.x + b.form.w, b.form.cy + 18], [gap + 6, b.form.cy + 18], [gap + 6, b.store.cy], [b.store.x, b.store.cy]]);
+link([[b.extract.cx, b.extract.y + b.extract.h], [b.extract.cx, b.store.y]]);
+// store -> matching
+link([[b.store.x + b.store.w, b.store.cy], [b.match.cx, b.store.cy], [b.match.cx, b.match.y]]);
+// matching -> narrative (AI)
+link([[b.match.x + b.match.w, b.match.cy], [b.narrate.cx, b.match.cy], [b.narrate.cx, b.narrate.y + b.narrate.h]]);
+// narrative -> review gate
+link([[b.narrate.x + b.narrate.w, b.narrate.cy], [b.review.cx, b.narrate.cy], [b.review.cx, b.review.y]]);
+
+// footer
+const fy = Y0 + HEAD + ROWS.length * ROWH + 26;
+txt(X0, fy, "Gemini never decides pass/fail or scores · hard constraints are code only, never weighted · unknown = 'not confirmed' · votes sealed until all three (or 24h) · the app never picks the flat", { size: 11.5, fill: "#475569", anchor: "start" });
+txt(X0, fy + 18, "Live: phlatmatch.vercel.app · Supabase free tier · Gemini 3.8 Flash free API · OpenStreetMap (Nominatim + tiles) free · no property API (99acres has none): links are read one page at a time", { size: 11.5, fill: "#475569", anchor: "start" });
+</script></body></html>
