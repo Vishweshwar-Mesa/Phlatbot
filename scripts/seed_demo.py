@@ -79,5 +79,5 @@ print("shortlist:", [names[i] for i in run["shortlist"]], "| also:", [names[i] f
 first = run["shortlist"][0]
 print("Meera votes:", req(f"{U}/api/app/{people['Meera']['form_token']}/vote", {"batchId": batch, "listingId": first, "reaction": "interested", "comment": "Sample vote"}, "POST"))
 for a in sb("assessments?select=listing_id,qualify_count,soft_score,per_person"):
-    print(f"  {names[a['listing_id']]:14} qualify={a['qualify_count']} fit={None if a['soft_score'] is None else round(a['soft_score']*100)}%  " +
+    print(f"  {names[a['listing_id']] or '(no locality)':14} qualify={a['qualify_count']} fit={None if a['soft_score'] is None else round(a['soft_score']*100)}%  " +
           "; ".join(f"{p['name']}: {'OK' if p['status']=='qualifies' else p['reasons'][0]}" for p in a["per_person"]))
