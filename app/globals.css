@@ -357,3 +357,10 @@ h1, h2, h3, .display { font-family: var(--font-display), var(--font-inter), syst
 .mini:hover { background: var(--card-inset); text-decoration: none; }
 .mini .grow { flex: 1; min-width: 0; }
 .mini .t { font-weight: 600; font-size: .92rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pin-dots { display: flex; justify-content: center; gap: 14px; }
+.pin-dots i { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--faint); display: block; }
+.pin-dots i.f { background: var(--accent); border-color: var(--accent); }
+.keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.key { padding: 16px 0; border-radius: 16px; background: var(--card-inset); color: var(--text); border: 1px solid var(--border); font-family: var(--font-display), sans-serif; font-size: 1.35rem; font-weight: 700; }
+[data-theme="dark"] .key { color: var(--text); }
+.key:active { background: var(--accent-soft); }

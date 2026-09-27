@@ -14,11 +14,11 @@ export default async function Landing({ searchParams }: PageProps<"/">) {
 
   return (
     <div className="main-col" style={{ maxWidth: 560, margin: "0 auto" }}>
-      <PageHeader eyebrow="Pune flat search" title="Who's this?" subtitle="Tap your own name. This phone will remember you." />
+      <PageHeader eyebrow="Pune flat search" title="Who's this?" subtitle="Tap your name, then enter your PIN. This phone will remember you." />
       <main className="container">
         <section className="card" style={{ display: "grid", gap: 10 }}>
           {people.map((p) => (
-            <a key={p.id} className="mini" href={`/me/${encodeURIComponent(p.name)}`} style={{ border: "1px solid var(--border)" }}>
+            <a key={p.id} className="mini" href={`/pin/${encodeURIComponent(p.name)}`} style={{ border: "1px solid var(--border)" }}>
               <span className="avatar">{p.name[0]}</span>
               <span className="grow">
                 <span className="t" style={{ display: "block" }}>{p.name}</span>
