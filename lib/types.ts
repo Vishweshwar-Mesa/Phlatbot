@@ -11,6 +11,7 @@ export interface ListingStructured {
   has_lift: boolean | null;
   has_parking: boolean | null;
   bathrooms: number | null;
+  bedrooms?: number | null;
   pet_friendly: boolean | null;
   bachelor_friendly: boolean | null;
   furnishing: Furnishing | null;
@@ -30,6 +31,7 @@ export const HARD_FIELDS = [
   "has_lift",
   "has_parking",
   "bathrooms",
+  "bedrooms",
   "pet_friendly",
   "bachelor_friendly",
 ] as const;
@@ -50,6 +52,7 @@ export interface Preferences {
   requires_parking: boolean;
   requires_pet_friendly: boolean;
   requires_bachelor_friendly: boolean;
+  ok_to_share_room: boolean | null; // null = not answered (older forms)
   soft_preferences: SoftPreference[];
   updated_at?: string;
 }
@@ -108,6 +111,7 @@ export interface PersonAssessment {
   name: string;
   status: "qualifies" | "disqualified";
   reasons: string[]; // why disqualified (empty if qualifies)
+  compromises?: string[]; // passes, but only by giving something up (e.g. sharing a bedroom)
   unconfirmed: string[]; // hard checks that couldn't be decided because the listing is silent
   soft_match_notes: SoftMatchNote[];
   soft_score: number | null; // 0-1, null if no preferences (or disqualified)

@@ -110,6 +110,7 @@ function ShortlistCard({ rank, l, batch, people, votes, meId, token }: {
       </div>
       <h2 style={{ marginTop: 2 }}>{s.normalized_locality ?? "Locality not confirmed"}</h2>
       <div className="facts">
+        <span>🛏 {s.bedrooms ?? "?"} bed</span>
         <span>🛁 {s.bathrooms ?? "?"} bath</span>
         <span>🛗 {s.has_lift === null ? "Lift ?" : s.has_lift ? "Lift" : "No lift"}</span>
         <span>🚗 {s.has_parking === null ? "Parking ?" : s.has_parking ? "Parking" : "No parking"}</span>
@@ -145,6 +146,7 @@ function ShortlistCard({ rank, l, batch, people, votes, meId, token }: {
                   </span>
                 ))}
               </div>
+              {(pa.compromises ?? []).map((c) => <span key={c} className="pill accent" style={{ whiteSpace: "normal" }}>↔ {c}</span>)}
               {pa.unconfirmed.map((u) => <span key={u} className="pill warn" style={{ whiteSpace: "normal" }}>{u}</span>)}
               {pa.flagged_ambiguous.map((f) => (
                 <span key={f.no_go_area} className="pill warn" style={{ whiteSpace: "normal" }}>

@@ -26,6 +26,7 @@ export default async function ConstraintsPage({ params }: PageProps<"/p/[token]/
     requires_parking: saved.requires_parking,
     requires_pet_friendly: saved.requires_pet_friendly,
     requires_bachelor_friendly: saved.requires_bachelor_friendly,
+    ok_to_share_room: saved.ok_to_share_room ?? null,
     starter_weights: Object.fromEntries(
       saved.soft_preferences.filter((s) => !s.is_custom).map((s) => [s.label, s.weight]),
     ),

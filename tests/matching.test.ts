@@ -4,13 +4,13 @@ import type { ListingStructured, Preferences } from "@/lib/types";
 
 const L = (o: Partial<ListingStructured> = {}): ListingStructured => ({
   location: "HSR Layout", normalized_locality: "HSR Layout", monthly_rent: 54000, floor: "3", has_lift: true,
-  has_parking: true, bathrooms: 2, pet_friendly: false, bachelor_friendly: true, furnishing: "semi",
+  has_parking: true, bathrooms: 2, bedrooms: 3, pet_friendly: false, bachelor_friendly: true, furnishing: "semi",
   security_deposit: 162000, brokerage: null, available_from: null, notice_period_months: null,
   other_notes: "balcony, power backup, 24x7 water, near metro", extraction_confidence: "high", ...o,
 });
 const P = (o: Partial<Preferences> = {}): Preferences => ({
   participant_id: "r", max_rent: 19000, no_go_areas: [], min_bathrooms: 2, requires_lift: false,
-  requires_parking: false, requires_pet_friendly: false, requires_bachelor_friendly: false, soft_preferences: [], ...o,
+  requires_parking: false, requires_pet_friendly: false, requires_bachelor_friendly: false, ok_to_share_room: false, soft_preferences: [], ...o,
 });
 
 describe("hard filter", () => {
@@ -44,6 +44,32 @@ describe("hard filter", () => {
     const answers = new Map([[noGoKey("Koramangala 8th Block", "Koramangla"), true]]);
     const r = hardFilter(L({ normalized_locality: "Koramangala 8th Block" }), P({ no_go_areas: ["Koramangla"] }), answers);
     expect(r.status).toBe("disqualified");
+  });
+});
+
+describe("bedrooms for three", () => {
+  const trio = (share: [boolean, boolean, boolean]) =>
+    ["r", "m", "k"].map((id, i) => ({ id, name: id, prefs: P({ participant_id: id, ok_to_share_room: share[i] }) }));
+  it("3 bedrooms: nobody shares", () => {
+    const v = assessListing("a", L({ bedrooms: 3 }), trio([false, false, false]), new Map());
+    expect(v.qualify_count).toBe(3);
+    expect(v.per_person.every((p) => !p.compromises?.length)).toBe(true);
+  });
+  it("2 bedrooms: two willing sharers pass (with the compromise shown), the other needs their own room", () => {
+    const v = assessListing("a", L({ bedrooms: 2 }), trio([true, true, false]), new Map());
+    expect(v.per_person.map((p) => p.status)).toEqual(["qualifies", "qualifies", "disqualified"]);
+    expect(v.per_person[0].compromises?.[0]).toMatch(/share a bedroom/);
+    expect(v.per_person[2].reasons[0]).toMatch(/doesn't want to share/);
+  });
+  it("2 bedrooms with only one willing sharer: out for everyone", () => {
+    const v = assessListing("a", L({ bedrooms: 2 }), trio([true, false, false]), new Map());
+    expect(v.qualify_count).toBe(0);
+    expect(v.per_person[0].reasons[0]).toMatch(/not enough of you/);
+  });
+  it("unknown bedrooms is not confirmed, never a fail", () => {
+    const v = assessListing("a", L({ bedrooms: null }), trio([false, false, false]), new Map());
+    expect(v.qualify_count).toBe(3);
+    expect(v.per_person[0].unconfirmed).toContain("Bedrooms not confirmed");
   });
 });
 

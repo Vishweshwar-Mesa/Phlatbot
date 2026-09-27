@@ -31,6 +31,11 @@ describe("parseClarification", () => {
     expect(r.problems).toHaveLength(3);
   });
 
+  it("reads bedrooms including '2 BHK'", () => {
+    expect(parseClarification("bedrooms: 2 BHK", ["bedrooms"]).answers).toEqual({ bedrooms: { value: 2 } });
+    expect(parseClarification("bhk: 3", ["bedrooms"]).answers).toEqual({ bedrooms: { value: 3 } });
+  });
+
   it("accepts partial answers", () => {
     const r = parseClarification("Lift = no", [...asked]);
     expect(r.answers).toEqual({ has_lift: { value: false } });

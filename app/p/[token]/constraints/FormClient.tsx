@@ -12,6 +12,7 @@ export interface InitialForm {
   requires_parking: boolean;
   requires_pet_friendly: boolean;
   requires_bachelor_friendly: boolean;
+  ok_to_share_room: boolean | null;
   starter_weights: Record<string, number>;
   custom: CustomFactor[];
 }
@@ -22,7 +23,7 @@ interface CustomFactor {
   approval: string;
 }
 
-type BoolKey = "requires_lift" | "requires_parking" | "requires_pet_friendly" | "requires_bachelor_friendly";
+type BoolKey = "requires_lift" | "requires_parking" | "requires_pet_friendly" | "requires_bachelor_friendly" | "ok_to_share_room";
 
 const HARD_TOGGLES: { key: BoolKey; label: string; hint: string }[] = [
   { key: "requires_lift", label: "🛗 Lift", hint: "The building must have a lift" },
@@ -77,6 +78,7 @@ export default function FormClient({ token, initial }: { token: string; initial:
     requires_parking: initial?.requires_parking ?? null,
     requires_pet_friendly: initial?.requires_pet_friendly ?? null,
     requires_bachelor_friendly: initial?.requires_bachelor_friendly ?? null,
+    ok_to_share_room: initial?.ok_to_share_room ?? null,
   });
   const [weights, setWeights] = useState<Record<string, number>>(
     Object.fromEntries(STARTER_FACTORS.map((f) => [f, initial?.starter_weights[f] ?? 0])),
@@ -265,6 +267,24 @@ export default function FormClient({ token, initial }: { token: string; initial:
               </div>
             </div>
           ))}
+          <div className={`toggle-row${bools.ok_to_share_room === null ? " unanswered" : ""}`} role="radiogroup" aria-label="Sharing a bedroom">
+            <div>
+              <div className="t-label">🛏 Sharing a bedroom</div>
+              <div className="t-hint">A 2 BHK only works for three if two of you share</div>
+            </div>
+            <div className="segmented">
+              <label className={bools.ok_to_share_room === true ? "on" : ""}>
+                <input type="radio" name="ok_to_share_room" required checked={bools.ok_to_share_room === true}
+                  onChange={() => setBools((b) => ({ ...b, ok_to_share_room: true }))} />
+                OK to share
+              </label>
+              <label className={bools.ok_to_share_room === false ? "on off-choice" : ""}>
+                <input type="radio" name="ok_to_share_room" checked={bools.ok_to_share_room === false}
+                  onChange={() => setBools((b) => ({ ...b, ok_to_share_room: false }))} />
+                Own room
+              </label>
+            </div>
+          </div>
         </div>
       </section>
 

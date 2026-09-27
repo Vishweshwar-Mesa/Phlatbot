@@ -11,6 +11,7 @@ export interface FormPayload {
   requires_parking: unknown;
   requires_pet_friendly: unknown;
   requires_bachelor_friendly: unknown;
+  ok_to_share_room: unknown;
   starter_weights: unknown; // { [starter label]: 0-5 }
   custom: unknown; // [{ label, weight, approval }]
 }
@@ -23,6 +24,7 @@ export interface ValidPrefs {
   requires_parking: boolean;
   requires_pet_friendly: boolean;
   requires_bachelor_friendly: boolean;
+  ok_to_share_room: boolean;
   soft_preferences: SoftPreference[];
 }
 
@@ -33,6 +35,7 @@ const BOOL_FIELDS = [
   ["requires_parking", "Parking"],
   ["requires_pet_friendly", "Pet-friendly"],
   ["requires_bachelor_friendly", "Bachelor-friendly"],
+  ["ok_to_share_room", "Sharing a bedroom"],
 ] as const;
 
 function isWeight(n: unknown, allowZero: boolean): n is number {
@@ -120,6 +123,7 @@ export function validatePrefs(
       requires_parking: bools.requires_parking!,
       requires_pet_friendly: bools.requires_pet_friendly!,
       requires_bachelor_friendly: bools.requires_bachelor_friendly!,
+      ok_to_share_room: bools.ok_to_share_room!,
       soft_preferences: soft,
     },
   };

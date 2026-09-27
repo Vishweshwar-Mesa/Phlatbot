@@ -20,6 +20,7 @@ export default async function ListingsPage({ params }: PageProps<"/p/[token]/lis
       rent: s.monthly_rent,
       deposit: s.security_deposit,
       bathrooms: s.bathrooms,
+      bedrooms: s.bedrooms ?? null,
       lift: s.has_lift,
       parking: s.has_parking,
       furnishing: s.furnishing,

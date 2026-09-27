@@ -21,6 +21,7 @@ export async function writeNarratives(
       name: p.name,
       hard_constraints: p.status,
       disqualified_because: p.reasons,
+      compromises: p.compromises ?? [],
       not_confirmed: p.unconfirmed,
       needs_their_confirmation: p.flagged_ambiguous.map((f) => `is ${f.normalized_locality} inside no-go "${f.no_go_area}"?`),
       weighted_preference_score_percent: p.soft_score === null ? null : Math.round(p.soft_score * 100),

@@ -60,13 +60,23 @@ export function noGoMatch(locality: string, area: string): { kind: "clean" | "am
 
 // ------------------------------------------------------------------ step 1: hard filter
 
+/**
+ * Three people, so bedrooms decide who must share: 3+ -> nobody, 2 -> two people, 1 -> all three.
+ * `willing` = how many of the three said they're OK sharing a bedroom.
+ */
+export function sharersNeeded(bedrooms: number): number {
+  return bedrooms >= 3 ? 0 : bedrooms === 2 ? 2 : 3;
+}
+
 export function hardFilter(
   s: ListingStructured,
   p: Preferences,
   noGo: NoGoAnswers,
-): Pick<PersonAssessment, "status" | "reasons" | "unconfirmed" | "flagged_ambiguous"> {
+  willing = 0,
+): Pick<PersonAssessment, "status" | "reasons" | "unconfirmed" | "flagged_ambiguous" | "compromises"> {
   const reasons: string[] = [];
   const unconfirmed: string[] = [];
+  const compromises: string[] = [];
   const flagged: AmbiguousFlag[] = [];
 
   if (s.monthly_rent === null) unconfirmed.push("Rent not confirmed");
@@ -88,6 +98,18 @@ export function hardFilter(
       }
   }
 
+  const beds = s.bedrooms ?? null;
+  if (beds === null) unconfirmed.push("Bedrooms not confirmed");
+  else {
+    const need = sharersNeeded(beds);
+    if (need > 0) {
+      if (p.ok_to_share_room === false) reasons.push(`Only ${beds} bedroom(s) for 3 people, and doesn't want to share a room`);
+      else if (p.ok_to_share_room === null || p.ok_to_share_room === undefined) unconfirmed.push("Room-sharing answer not given");
+      else if (willing < need) reasons.push(`Only ${beds} bedroom(s) for 3 people, and not enough of you are willing to share`);
+      else compromises.push(need === 3 ? "Everyone shares one bedroom" : `Would share a bedroom (${beds} bedrooms for 3)`);
+    }
+  }
+
   if (s.bathrooms === null) unconfirmed.push("Bathrooms not confirmed");
   else if (s.bathrooms < p.min_bathrooms) reasons.push(`${s.bathrooms} bathroom(s), needs at least ${p.min_bathrooms}`);
 
@@ -103,7 +125,7 @@ export function hardFilter(
     else if (has === null) unconfirmed.push(`${label[0].toUpperCase() + label.slice(1)} not confirmed`);
   }
 
-  return { status: reasons.length ? "disqualified" : "qualifies", reasons, unconfirmed, flagged_ambiguous: flagged };
+  return { status: reasons.length ? "disqualified" : "qualifies", reasons, unconfirmed, flagged_ambiguous: flagged, compromises };
 }
 
 // ------------------------------------------------------------------ step 2: soft score
@@ -186,7 +208,7 @@ export function softScore(p: Preferences, s: ListingStructured): { notes: SoftMa
 // ------------------------------------------------------------------ assemble + rank
 
 const HARD_LISTING_FIELDS: (keyof ListingStructured)[] = [
-  "monthly_rent", "normalized_locality", "has_lift", "has_parking", "bathrooms", "pet_friendly", "bachelor_friendly",
+  "monthly_rent", "normalized_locality", "has_lift", "has_parking", "bathrooms", "bedrooms", "pet_friendly", "bachelor_friendly",
 ];
 
 export function assessListing(
@@ -195,8 +217,9 @@ export function assessListing(
   people: { id: string; name: string; prefs: Preferences }[],
   noGo: Map<string, NoGoAnswers>,
 ): ListingVerdict {
+  const willing = people.filter((x) => x.prefs.ok_to_share_room === true).length;
   const per_person: PersonAssessment[] = people.map(({ id, name, prefs }) => {
-    const hard = hardFilter(s, prefs, noGo.get(id) ?? new Map());
+    const hard = hardFilter(s, prefs, noGo.get(id) ?? new Map(), willing);
     const soft = hard.status === "qualifies" ? softScore(prefs, s) : { notes: [], score: null };
     return { participant_id: id, name, ...hard, soft_match_notes: soft.notes, soft_score: soft.score };
   });

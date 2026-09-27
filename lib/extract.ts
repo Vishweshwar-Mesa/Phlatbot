@@ -17,6 +17,7 @@ const SCHEMA = {
     has_lift: nullable("boolean"),
     has_parking: nullable("boolean"),
     bathrooms: nullable("number"),
+    bedrooms: nullable("number"),
     pet_friendly: nullable("boolean"),
     bachelor_friendly: nullable("boolean"),
     furnishing: { type: ["string", "null"], enum: ["furnished", "semi", "unfurnished", null] },
@@ -28,7 +29,7 @@ const SCHEMA = {
     extraction_confidence: { type: "string", enum: ["high", "medium", "low"] },
   },
   required: [
-    "location", "normalized_locality", "monthly_rent", "floor", "has_lift", "has_parking", "bathrooms",
+    "location", "normalized_locality", "monthly_rent", "floor", "has_lift", "has_parking", "bathrooms", "bedrooms",
     "pet_friendly", "bachelor_friendly", "furnishing", "security_deposit", "brokerage", "available_from",
     "notice_period_months", "other_notes", "extraction_confidence",
   ],
@@ -42,6 +43,7 @@ Rules:
   "1.2L" -> 120000). If only a per-person/per-room rent is given, return null.
 - security_deposit: in rupees; if given as months of rent and rent is known, compute it; otherwise null.
 - normalized_locality: the neighbourhood name in standard spelling, e.g. "Baner", "Kothrud", "Hinjewadi Phase 1".
+- bedrooms: the number of bedrooms if stated (e.g. "2 BHK" -> 2, "3BHK" -> 3, "1RK" -> 1).
 - bathrooms: a number only if stated. has_parking true only if parking is offered (car or bike).
 - furnishing: furnished / semi / unfurnished, or null if not stated.
 - other_notes: a short comma-separated list of every other amenity or feature mentioned (balcony, power backup,
@@ -78,6 +80,7 @@ export function sanitizeExtraction(raw: Record<string, unknown>): ListingStructu
     has_lift: bool(raw.has_lift),
     has_parking: bool(raw.has_parking),
     bathrooms: num(raw.bathrooms),
+    bedrooms: num(raw.bedrooms),
     pet_friendly: bool(raw.pet_friendly),
     bachelor_friendly: bool(raw.bachelor_friendly),
     furnishing: furn === "furnished" || furn === "semi" || furn === "unfurnished" ? (furn as Furnishing) : null,

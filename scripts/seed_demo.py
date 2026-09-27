@@ -14,9 +14,11 @@ sb = lambda path, data=None, method=None: json.loads(req(f"{SU}/rest/v1/{path}",
 
 # clean slate
 for p in ["votes?created_at=not.is.null", "assessments?created_at=not.is.null", "no_go_confirmations?participant_id=not.is.null",
-          "preferences?participant_id=not.is.null", "rate_limits?key=not.is.null", "listings?id=not.is.null", "batch_runs?id=not.is.null"]:
+          "preferences?participant_id=not.is.null", "rate_limits?key=not.is.null", "listings?submitted_by_telegram_id=eq.0", "batch_runs?id=not.is.null"]:
     req(f"{SU}/rest/v1/{p}", method="DELETE", sb=True)
 req(f"{SU}/rest/v1/participants?id=not.is.null", {"form_submitted_at": None, "telegram_user_id": None}, "PATCH", sb=True)
+# Real Telegram listings are kept; send them back to the waiting pool so they get re-scored with everyone else.
+req(f"{SU}/rest/v1/listings?submitted_by_telegram_id=neq.0&status=neq.draft", {"status": "awaiting_preferences", "published_batch_run_id": None}, "PATCH", sb=True)
 people = {p["name"]: p for p in sb("participants?select=id,name,form_token")}
 
 S = lambda **o: {"location": None, "normalized_locality": None, "monthly_rent": None, "floor": None, "has_lift": None,
@@ -25,14 +27,15 @@ S = lambda **o: {"location": None, "normalized_locality": None, "monthly_rent": 
   "extraction_confidence": "high", "latitude": None, "longitude": None, **o}
 LISTINGS = [
   # --- The three listings described in the brief (only what the brief states; the rest stays null = "not confirmed")
-  ("FROM THE BRIEF: Riya's find, a 3BHK in Baner she loved", S(normalized_locality="Baner", location="Baner, Pune", other_notes="3BHK")),
+  ("FROM THE BRIEF: Riya's find, a 3BHK in Baner she loved", S(normalized_locality="Baner", location="Baner, Pune", bedrooms=3)),
   ("FROM THE BRIEF: Meera's find in Kothrud that fit the budget", S(normalized_locality="Kothrud", location="Kothrud, Pune")),
   ("FROM THE BRIEF: Kavita's find, ticked every box except it was on the fifth floor with no lift", S(floor="5", has_lift=False)),
   # --- Extra sample listings (not from the brief) so there are real options to compare
-  ("SAMPLE: 3BHK in Wakad near Hinjewadi", S(normalized_locality="Wakad", monthly_rent=54000, floor="9 of 14", has_lift=True, has_parking=True, bathrooms=2, pet_friendly=False, bachelor_friendly=True, furnishing="semi", security_deposit=160000, other_notes="near Hinjewadi IT park, clubhouse, security, power backup, water supply 24x7, balcony")),
-  ("SAMPLE: 3BHK in Balewadi", S(normalized_locality="Balewadi", monthly_rent=58500, floor="2 of 4", has_lift=None, has_parking=True, bathrooms=2, bachelor_friendly=True, furnishing="semi", security_deposit=175000, other_notes="balcony, natural light, near Hinjewadi, quiet")),
-  ("SAMPLE: 3BHK in Aundh", S(normalized_locality="Aundh", monthly_rent=60000, floor="4 of 7", has_lift=True, has_parking=True, bathrooms=3, pet_friendly=False, bachelor_friendly=True, furnishing="furnished", security_deposit=180000, other_notes="balcony, gym in society, power backup, near bus stop, quiet lane")),
-  ("SAMPLE: 3BHK in Viman Nagar", S(normalized_locality="Viman Nagar", monthly_rent=69000, floor="3 of 8", has_lift=True, has_parking=True, bathrooms=3, bachelor_friendly=True, furnishing="furnished", security_deposit=207000, other_notes="balcony, near airport, gym")),
+  ("SAMPLE: 3BHK in Wakad near Hinjewadi", S(normalized_locality="Wakad", bedrooms=3, monthly_rent=54000, floor="9 of 14", has_lift=True, has_parking=True, bathrooms=2, pet_friendly=False, bachelor_friendly=True, furnishing="semi", security_deposit=160000, other_notes="near Hinjewadi IT park, clubhouse, security, power backup, water supply 24x7, balcony")),
+  ("SAMPLE: 3BHK in Balewadi", S(normalized_locality="Balewadi", bedrooms=3, monthly_rent=58500, floor="2 of 4", has_lift=None, has_parking=True, bathrooms=2, bachelor_friendly=True, furnishing="semi", security_deposit=175000, other_notes="balcony, natural light, near Hinjewadi, quiet")),
+  ("SAMPLE: 3BHK in Aundh", S(normalized_locality="Aundh", bedrooms=3, monthly_rent=60000, floor="4 of 7", has_lift=True, has_parking=True, bathrooms=3, pet_friendly=False, bachelor_friendly=True, furnishing="furnished", security_deposit=180000, other_notes="balcony, gym in society, power backup, near bus stop, quiet lane")),
+  ("SAMPLE: 2BHK in Kalyani Nagar (two of you would share)", S(normalized_locality="Kalyani Nagar", bedrooms=2, monthly_rent=45000, floor="6 of 11", has_lift=True, has_parking=True, bathrooms=2, pet_friendly=False, bachelor_friendly=True, furnishing="furnished", security_deposit=135000, other_notes="balcony, power backup, security, near bus stop")),
+  ("SAMPLE: 3BHK in Viman Nagar", S(normalized_locality="Viman Nagar", bedrooms=3, monthly_rent=69000, floor="3 of 8", has_lift=True, has_parking=True, bathrooms=3, bachelor_friendly=True, furnishing="furnished", security_deposit=207000, other_notes="balcony, near airport, gym")),
 ]
 for i, (title, s) in enumerate(LISTINGS):
     sb("listings", {"raw_text": title, "submitted_by_telegram_id": 0, "submitted_by_name": ("From the brief" if title.startswith("FROM THE BRIEF") else "Sample data"),
@@ -55,17 +58,17 @@ def form(name, custom=(), **o):
 
 # FROM THE BRIEF: Riya won't live in Kothrud (more than 20 min from her gym and family); Kavita can't do Baner
 # (commute to her Hinjewadi office); Meera needs a lift (knee condition). Rent caps and 2 bathrooms are SAMPLE
-# values (the brief gives none). Other hard minimums are left "Not required" because the brief doesn't state them.
-form("Riya", max_rent=22000, no_go_areas=["Kothrud"],
+# values (the brief gives none), and so are the room-sharing answers. Other hard minimums are left "Not required" because the brief doesn't state them.
+form("Riya", max_rent=22000, no_go_areas=["Kothrud"], ok_to_share_room=False,
      starter_weights={"Furnished": 3, "Balcony": 2}, custom=[("Close to my gym and family", 5)])
-form("Meera", max_rent=20000, requires_lift=True,
+form("Meera", max_rent=20000, requires_lift=True, ok_to_share_room=True,
      starter_weights={"Balcony": 3, "Quiet locality": 4, "Natural light / ventilation": 3})
-form("Kavita", max_rent=21000, no_go_areas=["Baner"],
+form("Kavita", max_rent=21000, no_go_areas=["Baner"], ok_to_share_room=True,
      starter_weights={"Society amenities (power backup, security)": 3}, custom=[("Near Hinjewadi", 5)])
 
 for _ in range(40):
     time.sleep(3)
-    st = [l["status"] for l in sb("listings?select=status")]
+    st = [l["status"] for l in sb("listings?status=neq.draft&select=status")]
     if all(x == "assessed_unpublished" for x in st): break
 print("statuses:", st)
 code, body = req(f"{U}/api/app/{people['Riya']['form_token']}/reassess", {}, "POST")

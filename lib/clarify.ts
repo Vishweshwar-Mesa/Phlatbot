@@ -8,6 +8,7 @@ export const FIELD_LABEL: Record<HardField, string> = {
   has_lift: "lift",
   has_parking: "parking",
   bathrooms: "bathrooms",
+  bedrooms: "bedrooms",
   pet_friendly: "pets",
   bachelor_friendly: "bachelors",
 };
@@ -17,6 +18,7 @@ export const FIELD_QUESTION: Record<HardField, string> = {
   has_lift: "does the building have a lift?",
   has_parking: "does it come with parking?",
   bathrooms: "how many bathrooms?",
+  bedrooms: "how many bedrooms? (e.g. 2 for a 2 BHK)",
   pet_friendly: "are pets allowed?",
   bachelor_friendly: "are bachelors allowed?",
 };
@@ -26,6 +28,7 @@ const ALIASES: Record<string, HardField> = {
   lift: "has_lift", elevator: "has_lift",
   parking: "has_parking", "car parking": "has_parking",
   bathrooms: "bathrooms", bathroom: "bathrooms", baths: "bathrooms", bath: "bathrooms",
+  bedrooms: "bedrooms", bedroom: "bedrooms", beds: "bedrooms", bhk: "bedrooms", rooms: "bedrooms",
   pets: "pet_friendly", pet: "pet_friendly", "pet friendly": "pet_friendly", "pet-friendly": "pet_friendly",
   bachelors: "bachelor_friendly", bachelor: "bachelor_friendly", "bachelor friendly": "bachelor_friendly",
   "bachelor-friendly": "bachelor_friendly",
@@ -79,8 +82,10 @@ export function parseClarification(text: string, asked: HardField[]): ClarifyRes
       else answers[field] = { value: n };
     } else {
       const n = Number(val);
-      if (!Number.isInteger(n) || n < 0 || n > 10) problems.push(`For bathrooms, give a whole number, or say don't know.`);
-      else answers[field] = { value: n };
+      const m = val.match(/^(\d+)\s*(bhk|rk)?$/i);
+      const n2 = m ? Number(m[1]) : n;
+      if (!Number.isInteger(n2) || n2 < 0 || n2 > 10) problems.push(`For ${FIELD_LABEL[field]}, give a whole number, or say don't know.`);
+      else answers[field] = { value: n2 };
     }
   }
   return { answers, problems };
@@ -97,7 +102,7 @@ export function questionMessage(fields: HardField[], intro: string): string {
     ...fields.map((f) => `• ${FIELD_LABEL[f]}: ${FIELD_QUESTION[f]}`),
     "",
     "Reply in one message, one per line, like:",
-    ...fields.map((f) => `${FIELD_LABEL[f]}: ${f === "monthly_rent" ? "54000" : f === "bathrooms" ? "2" : "yes"}`),
+    ...fields.map((f) => `${FIELD_LABEL[f]}: ${f === "monthly_rent" ? "54000" : f === "bathrooms" ? "2" : f === "bedrooms" ? "3" : "yes"}`),
     "",
     `If you don't know, write "don't know". It will show as not confirmed.`,
   ].join("\n");

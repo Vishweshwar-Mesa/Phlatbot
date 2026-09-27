@@ -15,6 +15,7 @@ export interface CardData {
   rent: number | null;
   deposit: number | null;
   bathrooms: number | null;
+  bedrooms: number | null;
   lift: boolean | null;
   parking: boolean | null;
   furnishing: string | null;
@@ -82,6 +83,7 @@ export default function ListingsClient({ cards }: { cards: CardData[] }) {
       </div>
       <div style={{ fontWeight: 600 }}>{c.locality}</div>
       <div className="facts">
+        <span>🛏 {c.bedrooms ?? "?"} bed</span>
         <span>🛁 {c.bathrooms ?? "?"} bath</span>
         <span>🛗 {yn(c.lift, "Lift")}</span>
         <span>🚗 {yn(c.parking, "Parking")}</span>

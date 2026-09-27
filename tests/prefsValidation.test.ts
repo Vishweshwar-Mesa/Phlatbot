@@ -9,6 +9,7 @@ const base: FormPayload = {
   requires_parking: false,
   requires_pet_friendly: false,
   requires_bachelor_friendly: true,
+  ok_to_share_room: false,
   starter_weights: { Furnished: 5, Balcony: 0, "Quiet locality": 2 },
   custom: [],
 };

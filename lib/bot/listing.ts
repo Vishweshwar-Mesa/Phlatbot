@@ -29,7 +29,7 @@ export function summary(s: ListingStructured, clar: Listing["clarifications"]): 
     `📍 ${val(s.normalized_locality)}`,
     `💰 Rent: ${val(s.monthly_rent, inr)}${s.monthly_rent !== null ? ` (${inr(s.monthly_rent / 3)} each)` : ""}${src("monthly_rent")}`,
     `🔐 Deposit: ${val(s.security_deposit, inr)} · Brokerage: ${val(s.brokerage)}`,
-    `🛁 Bathrooms: ${val(s.bathrooms)}${src("bathrooms")} · Floor: ${val(s.floor)}`,
+    `🛏 Bedrooms: ${val(s.bedrooms ?? null)}${src("bedrooms")} · 🛁 Bathrooms: ${val(s.bathrooms)}${src("bathrooms")} · Floor: ${val(s.floor)}`,
     `🛗 Lift: ${yn(s.has_lift)}${src("has_lift")} · 🚗 Parking: ${yn(s.has_parking)}${src("has_parking")}`,
     `🐾 Pets: ${yn(s.pet_friendly)}${src("pet_friendly")} · 🔑 Bachelors: ${yn(s.bachelor_friendly)}${src("bachelor_friendly")}`,
     `🛋 Furnishing: ${val(s.furnishing)} · Available: ${val(s.available_from)}`,
