@@ -1,0 +1,82 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Section B · Flat Search components</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; font-family: Inter, Arial, sans-serif; color: #1d1d1f; }
+  .sheet { width: 1520px; }
+  .banner { background: #1c1c1c; color: #fff; text-align: center; font-weight: 700; letter-spacing: .12em; font-size: 26px; padding: 22px 0; }
+  table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  th, td { border: 1px solid #d6d6d6; vertical-align: top; }
+  thead th { height: 98px; font-size: 21px; letter-spacing: .1em; font-weight: 700; position: relative; }
+  thead th .dot { position: absolute; left: 50%; bottom: -9px; width: 17px; height: 17px; border-radius: 50%; background: #1f9d6f; transform: translateX(-50%); }
+  thead th:first-child { width: 240px; }
+  td.row { text-align: center; vertical-align: middle; font-weight: 700; font-size: 19px; padding: 16px 10px; }
+  td.row span { display: block; font-weight: 400; color: #6b6b6b; font-size: 18px; margin-top: 4px; }
+  td.row.faded { color: #9a9a9a; } td.row.faded span { color: #b0b0b0; }
+  td.cell { padding: 16px 14px 18px; font-size: 13.2px; line-height: 1.45; }
+  td.cell ul { margin: 0; padding-left: 16px; }
+  td.cell li { margin: 0 0 5px; }
+  td.cell b { font-weight: 700; }
+  .tag { display: inline-block; font-size: 10.5px; font-weight: 800; letter-spacing: .06em; padding: 2px 7px; border-radius: 5px; margin-bottom: 7px; }
+  .det { background: #e3f4ec; color: #2f7558; } .llm { background: #ecebfb; color: #4f53a8; } .none { background: #f1f1f1; color: #777; }
+  .foot { font-size: 13px; color: #555; padding: 14px 18px; border: 1px solid #d6d6d6; border-top: 0; }
+</style></head>
+<body><div class="sheet" id="sheet">
+<div class="banner">SECTION B — FLAT SEARCH</div>
+<table>
+<thead><tr><th></th><th>TRIGGER<i class="dot"></i></th><th>INPUT<i class="dot"></i></th><th>CONTEXT<i class="dot"></i></th><th>PROCESSING<i class="dot"></i></th><th>OUTPUT<i class="dot"></i></th></tr></thead>
+<tbody>
+
+<tr><td class="row">RIYA<span>(Coordinator)</span></td>
+<td class="cell"><ul><li>Wants to fix the process, not find a better listing</li><li>Opens the one shared link <b>phlatmatch.vercel.app</b>, picks her name + 4-digit PIN</li><li>Finds a flat she likes</li></ul></td>
+<td class="cell"><ul><li><b>Her own constraints form</b>: max rent share, no-go area <b>Kothrud</b>, lift / parking / bathrooms / pets / bachelors, room sharing</li><li>Weighted 1–5 preferences, incl. own factor "Close to my gym and family"</li><li>Forwards listing text or a link to <b>@Phlatbot</b></li></ul></td>
+<td class="cell"><ul><li>Sees only her own answers</li><li>Dashboard: who's ready (3/3), next shortlist 7:05pm IST, votes pending</li><li>Same app as the others: coordinating gives no extra power</li></ul></td>
+<td class="cell"><ul><li>Answers the bot's one question about missing details (e.g. "lift: yes")</li><li>Confirms fuzzy no-go matches in the app ("is Koramangala inside Koramangla?")</li><li>Can tap <b>Publish now</b> (once an hour)</li></ul></td>
+<td class="cell"><ul><li>A private vote: interested / maybe / no + comment</li><li>Sees what she gets and gives up on each of the 2–3 flats</li><li>Walks into the conversation with real options; the tool never picks</li></ul></td></tr>
+
+<tr><td class="row">MEERA &amp;<br>KAVITA<span>(Participants)</span></td>
+<td class="cell"><ul><li>Same shared link, own name + PIN</li><li>Fill in constraints <b>separately, before seeing any shortlist</b></li><li>Find listings of their own</li></ul></td>
+<td class="cell"><ul><li><b>Meera</b>: lift <b>Required</b> (knee condition, 5th floor = hard no)</li><li><b>Kavita</b>: no-go <b>Baner</b> (Hinjewadi commute) + preference "Near Hinjewadi"</li><li>Room-sharing answer, rent cap, weighted preferences</li><li>Listings / links to @Phlatbot</li></ul></td>
+<td class="cell"><ul><li>Can't see each other's answers or votes</li><li>Nothing is matched until all three have submitted (readiness gate)</li><li>Editing constraints re-scores unpublished flats</li></ul></td>
+<td class="cell"><ul><li>Answer missing-detail questions from the bot</li><li>Answer their own no-go confirmations</li><li>Vote on each shortlisted flat; can change it until the reveal</li></ul></td>
+<td class="cell"><ul><li>Sealed votes, revealed <b>all three at once</b> (or after 24h)</li><li>Dealbreakers surface before anyone gets attached</li><li>The decision stays their conversation</li></ul></td></tr>
+
+<tr><td class="row">FLAT SEARCH<br>APP</td>
+<td class="cell"><span class="tag det">NEXT.JS ON VERCEL + TELEGRAM BOT</span><ul><li>Telegram webhook: a listing or link arrives</li><li>Form save (the 3rd submission triggers scoring)</li><li>Vercel Cron <b>7:05pm IST</b> daily digest</li><li>Publish now · a vote · a no-go answer</li></ul></td>
+<td class="cell"><ul><li>Listing text / page text + submitter answers</li><li>Three constraint sets (hard + weighted)</li><li>Votes and comments</li></ul></td>
+<td class="cell"><ul><li>Readiness gate (3/3) and 6pm IST cutoff</li><li>Status flow: draft → awaiting_preferences → pending → assessed → published</li><li>Webhook secret, each Telegram update processed once, dedupe by text / URL</li><li>Listing IDs PM-001…</li></ul></td>
+<td class="cell"><span class="tag det">DETERMINISTIC CODE, NO AI</span><ul><li><b>Hard filter</b> pass/fail per person: rent ÷ 3 ≤ cap, no-go areas, lift, parking, bathrooms, pets, bachelors, bedrooms vs sharing</li><li>Unknown = "not confirmed", never a fail</li><li><b>Weighted score</b>: matched ÷ total weight</li><li><b>Rank</b>: # qualifying › score › fewer unknowns</li></ul></td>
+<td class="cell"><ul><li><b>Top 3 shortlist</b> + "also qualified"</li><li>Per person: ✓ gets, ✕ gives up, "not mentioned", exact failing reason, ↔ would share a bedroom</li><li>Listings list + map, NEW tags</li><li>Honest empty states</li></ul></td></tr>
+
+<tr><td class="row">GEMINI<span>(LLM)</span></td>
+<td class="cell"><span class="tag llm">GEMINI 3.8 FLASH · 3 NARROW JOBS</span><ul><li>A new listing to read</li><li>A scoring run needs summaries</li><li>Someone types a custom factor</li></ul></td>
+<td class="cell"><ul><li>Listing text / scraped page text</li><li>Verdict JSON the code already computed (never raw listing text)</li><li>The custom factor label</li></ul></td>
+<td class="cell"><ul><li>Strict JSON schema; anything unstated = null</li><li>"Don't alter pass/fail or scores; never pick a winner"</li><li>Input treated as data (injection-safe)</li></ul></td>
+<td class="cell"><ul><li><b>1 Extract</b> listing fields</li><li><b>2 Narrate</b> who gets what / who compromises (one batched call)</li><li><b>3 Classify</b> custom factor: RELEVANT / NOT_RELEVANT</li></ul></td>
+<td class="cell"><ul><li>Structured fields, re-validated in code</li><li>2–3 sentence summary per flat</li><li>Verdict + one-line reason (a rejected factor is shown, never silently dropped)</li><li><b>Never decides pass/fail, never scores</b></li></ul></td></tr>
+
+<tr><td class="row">PROPERTY API<span>(99acres etc.)</span></td>
+<td class="cell"><span class="tag none">NO PROPERTY API: BY DESIGN</span><ul><li>99acres has no public API; unofficial ones are fragile or paid</li><li>Instead: someone <b>sends a listing link</b> to the bot</li></ul></td>
+<td class="cell"><ul><li>One public URL (NoBroker, MagicBricks, any listing page)</li></ul></td>
+<td class="cell"><ul><li>Free: a plain page fetch, no scraping API</li><li>Private / local addresses blocked</li><li>Same link = same listing (deduped)</li></ul></td>
+<td class="cell"><ul><li>Link reader pulls title, meta tags, JSON-LD and page text</li></ul></td>
+<td class="cell"><ul><li>Page text → Gemini extraction → same clarify-and-save flow</li><li>Blocked or JS-only page → "please paste the text"</li></ul></td></tr>
+
+<tr><td class="row">SUPABASE<span>(Database)</span></td>
+<td class="cell"><ul><li>Every read / write from the server (service role only)</li></ul></td>
+<td class="cell"><ul><li>participants · preferences · listings · assessments · votes · batch_runs · no_go_confirmations · geocode cache · telegram_updates · rate_limits</li></ul></td>
+<td class="cell"><ul><li>RLS on, no public access</li><li>Unique dedupe hash · listing ref PM-###</li><li>One vote per person per flat per shortlist</li></ul></td>
+<td class="cell"><ul><li>Atomic functions: process each Telegram update once; Publish now rate limit (1/hour)</li></ul></td>
+<td class="cell"><ul><li>Single source of truth for every page</li><li>History of each published shortlist and its revealed votes</li></ul></td></tr>
+
+<tr><td class="row faded">OTHER API<span>(Optional)</span></td>
+<td class="cell"><span class="tag none">TELEGRAM BOT API · OPENSTREETMAP (FREE)</span><ul><li>A message to @Phlatbot</li><li>A listing is scored / the map is opened</li></ul></td>
+<td class="cell"><ul><li>Telegram update (message)</li><li>Locality name, e.g. "Wakad, Pune"</li></ul></td>
+<td class="cell"><ul><li>Webhook with secret header</li><li>Nominatim: max 1 request/second, cached per locality</li></ul></td>
+<td class="cell"><ul><li>Deliver updates, send bot replies</li><li>Geocode locality → approximate lat/long</li></ul></td>
+<td class="cell"><ul><li>Bot replies with the saved summary + listing ID</li><li>Map pins (Leaflet + OSM tiles); not found = no pin; no commute times</li></ul></td></tr>
+
+</tbody></table>
+<div class="foot"><b>Live:</b> phlatmatch.vercel.app &nbsp;·&nbsp; <b>Guardrails:</b> hard constraints in code only, never weighted · score only breaks ties within a tier · nothing fabricated (unknown = not confirmed) · votes sealed until all three or 24h · the app never picks the flat</div>
+</div></body></html>
