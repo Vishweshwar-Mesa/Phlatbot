@@ -41,7 +41,7 @@ Rules:
 - monthly_rent: total monthly rent for the whole flat in rupees as a plain number (e.g. "54k" -> 54000,
   "1.2L" -> 120000). If only a per-person/per-room rent is given, return null.
 - security_deposit: in rupees; if given as months of rent and rent is known, compute it; otherwise null.
-- normalized_locality: the neighbourhood name in standard spelling, e.g. "HSR Layout", "Koramangala 5th Block".
+- normalized_locality: the neighbourhood name in standard spelling, e.g. "Baner", "Kothrud", "Hinjewadi Phase 1".
 - bathrooms: a number only if stated. has_parking true only if parking is offered (car or bike).
 - furnishing: furnished / semi / unfurnished, or null if not stated.
 - other_notes: a short comma-separated list of every other amenity or feature mentioned (balcony, power backup,

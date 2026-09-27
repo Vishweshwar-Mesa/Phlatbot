@@ -28,7 +28,7 @@ export default function ListingsMap({ pins, selected, onSelect, height = 420 }: 
       const L = await import("leaflet");
       if (cancelled || !el.current) return;
       if (!map.current) {
-        map.current = L.map(el.current, { zoomControl: true, attributionControl: true }).setView([12.95, 77.62], 12);
+        map.current = L.map(el.current, { zoomControl: true, attributionControl: true }).setView([18.5204, 73.8567], 12);
         L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
           maxZoom: 19,
           attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',

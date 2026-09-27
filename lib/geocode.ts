@@ -8,7 +8,7 @@ import type { Listing } from "./types";
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 async function lookup(locality: string): Promise<{ lat: number; lng: number } | null> {
-  const q = encodeURIComponent(`${locality}, Bengaluru, India`);
+  const q = encodeURIComponent(`${locality}, Pune, Maharashtra, India`);
   try {
     const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1`, {
       headers: { "User-Agent": "Phlatmatch/1.0 (small private flat-search tool)" },
