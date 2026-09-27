@@ -4,6 +4,7 @@ import { FIELD_LABEL, missingHardFields, parseClarification, questionMessage } f
 import { db, must } from "../db";
 import { extractListing } from "../extract";
 import { readiness } from "../participants";
+import { readListingPage, URL_RE } from "../scrape";
 import { sendMessage, TgMessage } from "../telegram";
 import type { HardField, Listing, ListingStructured } from "../types";
 import type { Sender } from "./index";
@@ -16,7 +17,10 @@ const yn = (v: boolean | null) => (v === null ? "not confirmed" : v ? "yes" : "n
 const val = <T,>(v: T | null, f: (x: T) => string = String) => (v === null ? "not confirmed" : f(v));
 
 export function dedupeHash(text: string): string {
-  return createHash("sha256").update(text.toLowerCase().replace(/\s+/g, " ").trim()).digest("hex");
+  // Link submissions are stored as "<url>\n\n<page text>"; the same link is the same listing.
+  const first = text.split("\n")[0].trim();
+  const key = /^https?:\/\/\S+$/.test(first) ? first.replace(/[?#].*$/, "").replace(/\/$/, "") : text;
+  return createHash("sha256").update(key.toLowerCase().replace(/\s+/g, " ").trim()).digest("hex");
 }
 
 export function summary(s: ListingStructured, clar: Listing["clarifications"]): string {
@@ -97,19 +101,30 @@ export async function handleListingMessage(s: Sender, msg: TgMessage) {
   }
   const draft = await myDraft(s);
   if (draft) return handleAnswers(s, draft, text);
-  if (text.length < 30) {
-    await sendMessage(s.telegramId, "That's too short to be a listing. Forward or paste the full listing text.");
+  let rawText = text;
+  const link = text.match(URL_RE)?.[0];
+  // A message that is (mostly) just a link: read the page instead.
+  if (link && text.replace(link, "").trim().length < 30) {
+    await sendMessage(s.telegramId, "Opening that link…");
+    const page = await readListingPage(link);
+    if (!page.ok) {
+      await sendMessage(s.telegramId, `${page.reason} Please paste the listing text here instead.`);
+      return;
+    }
+    rawText = `${page.url}\n\n${page.text}`;
+  } else if (text.length < 30) {
+    await sendMessage(s.telegramId, "That's too short to be a listing. Forward or paste the full listing text, or send a link to it.");
     return;
   }
 
   await sendMessage(s.telegramId, "Reading the listing…");
-  const structured = await extractListing(text);
+  const structured = await extractListing(rawText);
   const missing = missingHardFields(structured);
   const l = must(
     await db()
       .from("listings")
       .insert({
-        raw_text: text,
+        raw_text: rawText,
         submitted_by_telegram_id: s.telegramId,
         submitted_by_name: s.name,
         structured,

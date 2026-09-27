@@ -35,8 +35,9 @@ async function sendHelp(s: Sender) {
   await sendMessage(
     s.telegramId,
     [
-      `Hi ${s.name}! Forward or paste a flat listing here and I'll add it to Phlatmatch.`,
+      `Hi ${s.name}! Forward or paste a flat listing here, or send a link to one, and I'll add it to Phlatmatch.`,
       "",
+      "• For a link I open the page and read it (some sites block this; then paste the text)",
       "• I read the listing and ask, in one message, about anything it doesn't say that the group's minimums depend on",
       "• Then it's saved and shows up in the app",
       "• /cancel discards a listing I'm still asking about",
