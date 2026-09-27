@@ -100,7 +100,7 @@ export default function ListingsClient({ cards }: { cards: CardData[] }) {
         </span>
         <span className="pill">{c.status}</span>
       </div>
-      {c.submitter && <p className="hint" style={{ marginBottom: 0 }}>Sent by {c.submitter} on Telegram</p>}
+      {c.submitter && <p className="hint" style={{ marginBottom: 0 }}>{c.submitter === "From the brief" ? "Listing described in the case brief" : c.submitter === "Sample data" ? "Sample listing (demo data)" : `Sent by ${c.submitter} on Telegram`}</p>}
     </article>
   );
 

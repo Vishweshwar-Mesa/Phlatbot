@@ -74,7 +74,11 @@ export default async function Dashboard({ params }: PageProps<"/p/[token]">) {
             <h2>
               {waiting.length
                 ? `Matching starts once ${waiting.map((w) => w.name).join(" and ")} ${waiting.length === 1 ? "fills" : "fill"} in constraints.`
-                : `Today's shortlist lands in ${Math.floor(mins / 60)}h ${mins % 60}m. ${inPool.length} flat${inPool.length === 1 ? " is" : "s are"} in the running.`}
+                : inPool.length
+                  ? `Next shortlist lands in ${Math.floor(mins / 60)}h ${mins % 60}m. ${inPool.length} flat${inPool.length === 1 ? " is" : "s are"} in the running.`
+                  : latest?.shortlist.length
+                    ? `The shortlist is out: ${latest.shortlist.length} flats to discuss. ${toVote ? `You have ${toVote} vote${toVote === 1 ? "" : "s"} to cast.` : "You've voted on all of them."}`
+                    : `Next shortlist in ${Math.floor(mins / 60)}h ${mins % 60}m. Send listings to @${BOT_USERNAME} to add to the pool.`}
             </h2>
             <div className="cd-row">
               <div className="cd"><span className="num">{inPool.length}</span><small>in the pool</small></div>
@@ -163,7 +167,7 @@ export default async function Dashboard({ params }: PageProps<"/p/[token]">) {
                 <span className="thumb" style={{ background: band(l.id) }} />
                 <span className="grow">
                   <span className="t" style={{ display: "block" }}>{l.structured.normalized_locality ?? "Locality not confirmed"}</span>
-                  <span className="muted small">{inr(l.structured.monthly_rent)}/mo{l.submitter ? ` · from ${l.submitter}` : ""}</span>
+                  <span className="muted small">{l.structured.monthly_rent === null ? "Rent not confirmed" : `${inr(l.structured.monthly_rent)}/mo`}{l.submitter ? ` · ${l.submitter === "From the brief" ? "from the brief" : `from ${l.submitter}`}` : ""}</span>
                 </span>
                 <span className="dots">
                   {people.map((p) => {
