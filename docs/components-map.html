@@ -1,0 +1,195 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Phlatmatch components map</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #f5f4fa; }
+  svg { display: block; font-family: Inter, system-ui, sans-serif; }
+</style></head>
+<body>
+<svg id="map" width="1680" height="1060" viewBox="0 0 1680 1060" xmlns="http://www.w3.org/2000/svg"></svg>
+<script>
+const C = {
+  user:  { fill: "#fbeaf0", stroke: "#d98ca3", head: "#9a4661" },
+  face:  { fill: "#fdf3e7", stroke: "#e2b57a", head: "#8a5a1c" },
+  code:  { fill: "#e3f4ec", stroke: "#7cc4a2", head: "#2f7558" },
+  ai:    { fill: "#ecebfb", stroke: "#9ea1e6", head: "#4f53a8" },
+  data:  { fill: "#e3eefb", stroke: "#8fb3e3", head: "#2d5d9a" },
+  ext:   { fill: "#ffffff", stroke: "#c9c7da", head: "#4a4866" },
+};
+const svg = document.getElementById("map");
+const NS = "http://www.w3.org/2000/svg";
+const el = (tag, attrs, parent = svg) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent.appendChild(e); return e; };
+function text(x, y, str, o = {}) {
+  const t = el("text", { x, y, "font-size": o.size || 13, "font-weight": o.weight || 400, fill: o.fill || "#2a2940",
+    "font-family": o.display ? "Bricolage Grotesque, Inter, sans-serif" : "Inter, sans-serif", "text-anchor": o.anchor || "start" });
+  t.textContent = str; return t;
+}
+function box(x, y, w, h, kind, title, lines = [], o = {}) {
+  const c = C[kind];
+  el("rect", { x, y, width: w, height: h, rx: 16, fill: c.fill, stroke: c.stroke, "stroke-width": o.thick ? 2.5 : 1.5, "stroke-dasharray": o.dash ? "6 5" : "" });
+  text(x + 16, y + 28, title, { size: o.titleSize || 15, weight: 700, fill: c.head, display: true });
+  lines.forEach((l, i) => {
+    const bullet = l.startsWith("•");
+    text(x + 16, y + 52 + i * 19, l, { size: 12.5, fill: bullet ? "#2a2940" : "#6b6985", weight: bullet ? 500 : 400 });
+  });
+}
+function arrow(pts, label, o = {}) {
+  const d = "M" + pts.map((p) => p.join(",")).join(" L");
+  el("path", { d, fill: "none", stroke: o.color || "#7b7fd4", "stroke-width": 2, "marker-end": "url(#ah)", "stroke-dasharray": o.dash ? "5 5" : "" });
+  if (label) {
+    const [a, b] = [pts[Math.floor((pts.length - 1) / 2)], pts[Math.floor((pts.length - 1) / 2) + 1]];
+    const mx = o.at ? o.at[0] : (a[0] + b[0]) / 2 + (o.dx || 0), my = o.at ? o.at[1] : (a[1] + b[1]) / 2 + (o.dy || -8);
+    const t = text(mx, my, label, { size: 11.5, weight: 600, fill: "#4f53a8", anchor: "middle" });
+    const bb = t.getBBox();
+    const bg = el("rect", { x: bb.x - 5, y: bb.y - 2, width: bb.width + 10, height: bb.height + 4, rx: 6, fill: "#f5f4fa" });
+    svg.insertBefore(bg, t);
+  }
+}
+const defs = el("defs", {});
+const m = el("marker", { id: "ah", viewBox: "0 0 10 10", refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: "auto-start-reverse" }, defs);
+el("path", { d: "M0,0 L10,5 L0,10 z", fill: "#7b7fd4" }, m);
+
+// ---------- title ----------
+text(40, 52, "Phlatmatch · components map", { size: 30, weight: 800, display: true });
+text(40, 80, "Three flatmates, one private constraints form each, a shortlist of 2–3 flats showing who gets what and who compromises. Live at phlatmatch.vercel.app", { size: 14, fill: "#6b6985" });
+
+// ---------- column 1: people ----------
+box(40, 130, 230, 150, "user", "Riya · Meera · Kavita", [
+  "The three flatmates (Pune)",
+  "• Fill in constraints separately",
+  "• Send listings they find",
+  "• Vote privately; decide together",
+]);
+text(40, 318, "The app never picks the flat.", { size: 12.5, weight: 700, fill: "#9a4661" });
+
+// ---------- column 2: entry points ----------
+box(320, 110, 300, 190, "face", "Telegram · @Phlatbot", [
+  "Listings only, from anyone",
+  "• Paste listing text, or send a link",
+  "• Bot asks missing lift / parking / rent /",
+  "  bathrooms / pets / bachelors in ONE msg",
+  "• 'Don't know' stays 'not confirmed'",
+  "• Saves it; duplicates rejected",
+]);
+box(320, 330, 300, 300, "face", "Web app · one shared link", [
+  "phlatmatch.vercel.app (installable)",
+  "• Pick your name + 4-digit PIN (trial)",
+  "• Dashboard: readiness, countdown, tiles",
+  "• Constraints form: hard minimums +",
+  "  1–5 weighted preferences + own factors",
+  "• Listings: list view + OpenStreetMap map",
+  "• Shortlist: per-person gets / gives up,",
+  "  sealed vote, reveal all at once",
+  "• No-go questions · Publish now (1/hr)",
+  "• Pastel theme + dark mode",
+]);
+
+// ---------- column 3: Vercel ----------
+el("rect", { x: 670, y: 100, width: 640, height: 900, rx: 22, fill: "#ffffff", stroke: "#c9c7da", "stroke-width": 1.5 });
+text(690, 132, "Vercel · Next.js (one project)", { size: 17, weight: 800, display: true, fill: "#2a2940" });
+text(690, 152, "Server-side only; secrets in env vars", { size: 12, fill: "#6b6985" });
+
+box(690, 170, 600, 170, "ext", "API routes (guarded)", [
+  "• /api/telegram · webhook, secret header, each update_id processed once",
+  "• /api/form/[token] · save constraints  · /relevance · live custom-factor check",
+  "• /api/app/[token]/vote · only shortlisted flats, change until reveal",
+  "• /api/app/[token]/reassess · re-score + publish now, rate-limited 1/hour",
+  "• /api/app/[token]/nogo · person answers 'is X inside my no-go area?'",
+  "• /api/cron/digest · Bearer CRON_SECRET",
+]);
+
+box(690, 365, 350, 400, "code", "Deterministic code (no AI)", [
+  "• Clarification parser",
+  "  'lift: yes / pets: don't know' → fields",
+  "• Matching engine",
+  "  1 Hard filter: pass/fail per person",
+  "     rent ÷ 3 ≤ max share, no-go areas,",
+  "     lift, parking, bathrooms, pets, bachelors",
+  "     null = not confirmed, never a fail",
+  "     near-miss no-go → asked, never decided",
+  "  2 Weighted score (only if passed):",
+  "     matched weight ÷ total weight",
+  "  3 Rank: # qualifying › score › fewer unknowns",
+  "• Readiness gate: nothing matched until 3/3",
+  "• Vote reveal: all 3 voted, or 24h auto",
+  "• Dedupe by content / URL hash",
+], { thick: true });
+
+box(1060, 365, 230, 250, "ai", "Gemini 3.8 Flash · 3 jobs", [
+  "• 1 Extract fields from a listing",
+  "   (strict JSON, nulls if unstated)",
+  "• 2 Narrative: 'who gets what'",
+  "   from numbers code computed",
+  "• 3 Is a custom factor about",
+  "   the flat? RELEVANT / NOT",
+  "Never decides pass/fail,",
+  "never computes a score.",
+], { thick: true });
+
+box(1060, 635, 230, 130, "code", "Daily digest · Vercel Cron", [
+  "13:35 UTC = 7:05pm IST",
+  "• Assess 'pending' before 6pm IST",
+  "• Publish top 3 + 'also qualified'",
+  "• Honest empty states",
+]);
+
+box(690, 785, 290, 115, "code", "Link reader", [
+  "• Fetch page → title, meta, JSON-LD, text",
+  "• Blocks private / local addresses",
+  "• Blocked site → 'paste the text'",
+]);
+box(1000, 785, 290, 115, "code", "Geocoder", [
+  "• Locality → lat/long for map pins",
+  "• Max 1 request/second, cached",
+  "• Not found → no pin, nothing guessed",
+]);
+box(690, 920, 600, 62, "code", "Status flow of a listing", [
+  "draft → awaiting_preferences → pending → assessed_unpublished → published",
+], { titleSize: 13 });
+
+// ---------- column 4: external services ----------
+box(1360, 110, 290, 360, "data", "Supabase · Postgres", [
+  "Service role only (RLS, no public access)",
+  "• participants (3 seeded)",
+  "• preferences (hard + weighted jsonb)",
+  "• listings (raw text, structured, status)",
+  "• assessments (per-person verdicts)",
+  "• votes (hidden until reveal)",
+  "• batch_runs (each published shortlist)",
+  "• no_go_confirmations",
+  "• locality_geocode_cache",
+  "• telegram_updates (idempotency)",
+  "• rate_limits",
+]);
+box(1360, 500, 290, 110, "ext", "Google Gemini API", ["Free tier · model gemini-3.8-flash", "Called only for the 3 jobs"]);
+box(1360, 640, 290, 120, "ext", "OpenStreetMap", ["Nominatim geocoding (free, no key)", "Map tiles via Leaflet in the browser", "No commute times calculated"]);
+box(1360, 790, 290, 110, "ext", "Listing websites", ["NoBroker, MagicBricks, any public page", "Read only when a link is sent"]);
+box(1360, 920, 290, 80, "ext", "Telegram Bot API", ["Webhook delivery + bot replies"]);
+
+// ---------- arrows ----------
+arrow([[270, 180], [320, 180]], "listings");
+arrow([[270, 240], [295, 240], [295, 420], [320, 420]], "uses app", { at: [296, 330] });
+arrow([[620, 205], [690, 205]], "webhook");
+arrow([[620, 440], [655, 440], [655, 300], [690, 300]], "HTTPS", { at: [655, 372] });
+arrow([[865, 340], [865, 365]], "");
+arrow([[1040, 470], [1060, 470]], "");
+arrow([[1290, 250], [1360, 250]], "read / write");
+arrow([[1290, 540], [1360, 540]], "prompts");
+arrow([[1290, 842], [1325, 842], [1325, 700], [1360, 700]], "geocode", { at: [1325, 770] });
+arrow([[835, 900], [835, 1015], [1340, 1015], [1340, 845], [1360, 845]], "fetch page", { at: [1090, 1015] });
+arrow([[1360, 960], [1330, 960], [1330, 1000], [640, 1000], [640, 260], [620, 260]], "bot replies", { at: [640, 800] });
+arrow([[470, 630], [470, 1045], [1350, 1045], [1350, 730], [1360, 730]], "map tiles (browser)", { at: [900, 1045] });
+
+// ---------- legend ----------
+const L = [["user", "People"], ["face", "What people use"], ["code", "Deterministic code"], ["ai", "LLM (narrow jobs)"], ["data", "Data store"], ["ext", "External service / routes"]];
+L.forEach(([k, label], i) => {
+  const x = 40 + i * 0, y = 700 + i * 34;
+  el("rect", { x, y, width: 26, height: 20, rx: 6, fill: C[k].fill, stroke: C[k].stroke, "stroke-width": 1.5 });
+  text(x + 36, y + 15, label, { size: 13, weight: 600 });
+});
+text(40, 680, "Legend", { size: 14, weight: 800, display: true });
+text(40, 930, "Guardrails", { size: 14, weight: 800, display: true });
+["Hard constraints: code only, never weighted", "Score only breaks ties within a tier", "Votes sealed: all 3 at once or 24h", "Nothing fabricated: unknown = not confirmed",
+ "Rejected custom factor: reason shown", "Webhook secret + update_id dedupe"].forEach((g, i) => text(40, 952 + i * 17, "• " + g, { size: 11.5, fill: "#4a4866" }));
+</script>
+</body></html>
