@@ -59,7 +59,7 @@ export async function assess(listings: Listing[]): Promise<ListingVerdict[]> {
 
   // Ambiguous no-go matches become questions for that person (asked in the app, never decided for them).
   const flags = verdicts.flatMap((v) =>
-    v.per_person.flatMap((p) =>
+    v.per_person.filter((p) => p.status === "qualifies").flatMap((p) =>
       p.flagged_ambiguous.map((f) => ({ participant_id: p.participant_id, normalized_locality: f.normalized_locality, no_go_area: f.no_go_area })),
     ),
   );
