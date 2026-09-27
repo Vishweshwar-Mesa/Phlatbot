@@ -32,7 +32,7 @@ export default function Sidebar({ token, name, ready, counts }: {
         <span className="avatar" style={{ margin: 0 }}>{name[0]}</span>
         <div>
           <div style={{ fontWeight: 600, fontSize: ".9rem" }}>{name}</div>
-          <div className="muted" style={{ fontSize: ".76rem" }}>{ready ? "Constraints in" : "Constraints needed"}</div>
+          <div className="muted" style={{ fontSize: ".76rem" }}>{ready ? "Constraints in" : "Constraints needed"} · <a href="/switch">Not you?</a></div>
         </div>
       </div>
     </aside>

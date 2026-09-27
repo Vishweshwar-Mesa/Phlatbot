@@ -66,7 +66,7 @@ export default async function Dashboard({ params }: PageProps<"/p/[token]">) {
 
   return (
     <>
-      <PageHeader eyebrow={`${weekday} · Pune`} title={`Hi ${me.name}`} />
+      <PageHeader eyebrow={`${weekday} · Pune`} title={`Hi ${me.name}`} who={me.name} />
       <main className="container">
         <div className="dash">
           <section className="card hero-card span-8">

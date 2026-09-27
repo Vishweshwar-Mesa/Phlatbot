@@ -1,7 +1,7 @@
 import ThemeToggle from "./ThemeToggle";
 
 // Page title row: eyebrow, title, one-line subtitle, and the theme switch.
-export default function PageHeader({ title, subtitle, eyebrow }: { title: string; subtitle?: React.ReactNode; eyebrow?: string; who?: string }) {
+export default function PageHeader({ title, subtitle, eyebrow, who }: { title: string; subtitle?: React.ReactNode; eyebrow?: string; who?: string }) {
   return (
     <header className="page-top">
       <div>
@@ -9,7 +9,10 @@ export default function PageHeader({ title, subtitle, eyebrow }: { title: string
         <h1>{title}</h1>
         {subtitle && <p>{subtitle}</p>}
       </div>
-      <ThemeToggle />
+      <span className="row" style={{ gap: 8, flexWrap: "nowrap" }}>
+        {who && <a className="pill" href="/switch" title="Switch person">{who} · switch</a>}
+        <ThemeToggle />
+      </span>
     </header>
   );
 }
