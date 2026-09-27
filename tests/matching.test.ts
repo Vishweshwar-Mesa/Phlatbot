@@ -90,6 +90,10 @@ describe("soft score", () => {
     expect(matchSoft("Proximity to public transport", L()).outcome).toBe("matched");
     expect(matchSoft("Gym in the building", L()).outcome).toBe("no_data");
     expect(matchSoft("Balcony", L({ other_notes: "no balcony, lift" })).outcome).toBe("not_matched");
+    // "X and Y" needs both parts; a society gym is not "my gym and family"
+    expect(matchSoft("Close to my gym and family", L({ other_notes: "gym in society, balcony" })).outcome).toBe("no_data");
+    expect(matchSoft("Close to my gym and family", L({ other_notes: "near my gym, family nearby" })).outcome).toBe("matched");
+    expect(matchSoft("Society amenities (power backup, security)", L({ other_notes: "security guard" })).outcome).toBe("matched");
   });
   it("computes matched weight / total weight, and null with no preferences", () => {
     const p = P({
