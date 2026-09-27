@@ -71,17 +71,17 @@ export function hardFilter(
 
   if (s.monthly_rent === null) unconfirmed.push("Rent not confirmed");
   else if (s.monthly_rent / 3 > p.max_rent)
-    reasons.push(`Rent share ${inr(s.monthly_rent / 3)} is over your max ${inr(p.max_rent)}`);
+    reasons.push(`Rent share ${inr(s.monthly_rent / 3)} is over the max ${inr(p.max_rent)}`);
 
   if (p.no_go_areas.length) {
     if (!s.normalized_locality) unconfirmed.push("Locality not confirmed, so no-go areas can't be checked");
     else
       for (const area of p.no_go_areas) {
         const m = noGoMatch(s.normalized_locality, area);
-        if (m.kind === "clean") reasons.push(`In your no-go area "${area}"`);
+        if (m.kind === "clean") reasons.push(`In no-go area "${area}"`);
         else if (m.kind === "ambiguous") {
           const answer = noGo.get(noGoKey(s.normalized_locality, area));
-          if (answer === true) reasons.push(`You confirmed ${s.normalized_locality} is inside your no-go area "${area}"`);
+          if (answer === true) reasons.push(`Confirmed: ${s.normalized_locality} is inside no-go area "${area}"`);
           else if (answer !== false)
             flagged.push({ no_go_area: area, normalized_locality: s.normalized_locality, why: m.why });
         }
@@ -89,7 +89,7 @@ export function hardFilter(
   }
 
   if (s.bathrooms === null) unconfirmed.push("Bathrooms not confirmed");
-  else if (s.bathrooms < p.min_bathrooms) reasons.push(`${s.bathrooms} bathroom(s), you need at least ${p.min_bathrooms}`);
+  else if (s.bathrooms < p.min_bathrooms) reasons.push(`${s.bathrooms} bathroom(s), needs at least ${p.min_bathrooms}`);
 
   const binary: [boolean, boolean | null, string][] = [
     [p.requires_lift, s.has_lift, "lift"],
@@ -99,7 +99,7 @@ export function hardFilter(
   ];
   for (const [required, has, label] of binary) {
     if (!required) continue;
-    if (has === false) reasons.push(label === "lift" || label === "parking" ? `No ${label}, which you require` : `Not ${label}, which you require`);
+    if (has === false) reasons.push(label === "lift" || label === "parking" ? `No ${label} (required)` : `Not ${label} (required)`);
     else if (has === null) unconfirmed.push(`${label[0].toUpperCase() + label.slice(1)} not confirmed`);
   }
 

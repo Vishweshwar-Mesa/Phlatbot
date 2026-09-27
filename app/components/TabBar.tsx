@@ -9,9 +9,9 @@ export default function TabBar({ token, alerts }: { token: string; alerts: { hom
   const base = `/p/${token}`;
   const tabs = [
     { href: base, icon: "🏠", label: "Home", exact: true, dot: alerts.home },
-    { href: `${base}/constraints`, icon: "🎚️", label: "Constraints" },
+    { href: `${base}/listings`, icon: "🗺️", label: "Listings" },
     { href: `${base}/shortlist`, icon: "🗳️", label: "Shortlist", dot: alerts.shortlist },
-    { href: `${base}/history`, icon: "🕘", label: "History" },
+    { href: `${base}/constraints`, icon: "🎚️", label: "Constraints" },
   ];
   return (
     <nav className="tabbar" aria-label="App sections">

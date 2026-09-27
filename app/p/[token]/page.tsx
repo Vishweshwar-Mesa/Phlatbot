@@ -4,6 +4,9 @@ import PageHeader from "@/app/components/PageHeader";
 import { db, must } from "@/lib/db";
 import { BOT_USERNAME, telegramConnectUrl } from "@/lib/links";
 import { allParticipants, participantByToken } from "@/lib/participants";
+import { formatIst } from "@/lib/time";
+import { latestPublishedBatch } from "@/lib/votes";
+import { NoGoQuestion, PublishNow } from "./_components/HomeActions";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +20,10 @@ export default async function Home({ params }: PageProps<"/p/[token]">) {
   const waiting = people.filter((p) => !p.form_submitted_at);
   const statuses = (must(await db().from("listings").select("status")) as { status: string }[]).map((l) => l.status);
   const count = (s: string) => statuses.filter((x) => x === s).length;
+  const questions = must(
+    await db().from("no_go_confirmations").select("normalized_locality, no_go_area").eq("participant_id", me.id).is("is_no_go", null),
+  ) as { normalized_locality: string; no_go_area: string }[];
+  const latest = await latestPublishedBatch();
 
   return (
     <>
@@ -64,6 +71,41 @@ export default async function Home({ params }: PageProps<"/p/[token]">) {
           </section>
         )}
 
+        {questions.length > 0 && (
+          <section className="card highlight">
+            <div className="section-head">
+              <span className="section-icon">📍</span>
+              <div>
+                <span className="eyebrow">Needs your answer</span>
+                <h2>Is this inside a no-go area?</h2>
+                <p className="muted small" style={{ margin: 0 }}>Phlatmatch won&apos;t decide this for you.</p>
+              </div>
+            </div>
+            {questions.map((q) => (
+              <NoGoQuestion key={q.normalized_locality + q.no_go_area} token={token} locality={q.normalized_locality} area={q.no_go_area} />
+            ))}
+          </section>
+        )}
+
+        <section className="card">
+          <div className="section-head">
+            <span className="section-icon">🗳️</span>
+            <div>
+              <h2>Shortlist</h2>
+              <p className="muted small" style={{ margin: 0 }}>
+                {latest?.published_at
+                  ? `Latest: ${formatIst(latest.published_at)}${latest.empty_reason ? `. ${latest.empty_reason}` : `, ${latest.shortlist.length} flat(s) to vote on.`}`
+                  : "The first shortlist publishes at 7:05pm."}
+              </p>
+            </div>
+          </div>
+          <div className="grid-2">
+            <Link className="btn primary" href={`/p/${token}/shortlist`}>Open shortlist</Link>
+            <PublishNow token={token} />
+          </div>
+          <p className="hint">Publish now re-scores unpublished listings and opens voting straight away. It can run once an hour.</p>
+        </section>
+
         <section className="card">
           <div className="section-head">
             <span className="section-icon">👥</span>
@@ -98,7 +140,7 @@ export default async function Home({ params }: PageProps<"/p/[token]">) {
           <div className="section-head">
             <span className="section-icon">🏢</span>
             <div>
-              <h2>Listings</h2>
+              <h2><Link href={`/p/${token}/listings`}>Listings →</Link></h2>
               <p className="muted small" style={{ margin: 0 }}>
                 Forward or paste listings to @{BOT_USERNAME}. Shortlists publish daily at 7:05pm.
               </p>
