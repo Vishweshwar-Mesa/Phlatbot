@@ -74,6 +74,7 @@ export type ListingStatus =
 
 export interface Listing {
   id: string;
+  ref?: number; // short human ID, shown as PM-001
   raw_text: string;
   submitted_by_telegram_id: number;
   submitted_at: string;

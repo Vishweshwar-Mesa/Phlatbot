@@ -2,6 +2,11 @@
 
 export const BOT_USERNAME = "Phlatbot";
 
+/** Short, human-friendly listing ID: PM-007. */
+export function listingRef(ref: number | null | undefined): string {
+  return ref ? `PM-${String(ref).padStart(3, "0")}` : "PM-?";
+}
+
 /** Telegram `start` payloads allow only [A-Za-z0-9_-] up to 64 chars; a uuid without dashes fits. */
 export function telegramConnectCode(formToken: string): string {
   return formToken.replace(/-/g, "");

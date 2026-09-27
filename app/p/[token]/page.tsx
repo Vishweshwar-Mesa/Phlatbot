@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import PageHeader from "@/app/components/PageHeader";
 import { db, must } from "@/lib/db";
-import { BOT_USERNAME } from "@/lib/links";
+import { BOT_USERNAME, listingRef } from "@/lib/links";
 import { allParticipants, participantByToken } from "@/lib/participants";
 import { digestCutoff, formatIst, istDate } from "@/lib/time";
 import { inr, listingViews } from "@/lib/views";
@@ -169,7 +169,7 @@ export default async function Dashboard({ params }: PageProps<"/p/[token]">) {
                   {recentCutoff < new Date(l.confirmed_at ?? l.submitted_at).getTime() && <span className="new-tag small-tag">New</span>}
                 </span>
                 <span className="grow">
-                  <span className="t" style={{ display: "block" }}>{l.structured.normalized_locality ?? "Locality not confirmed"}</span>
+                  <span className="t" style={{ display: "block" }}><span className="ref-tag" style={{ marginRight: 6 }}>{listingRef(l.ref)}</span>{l.structured.normalized_locality ?? "Locality not confirmed"}</span>
                   <span className="muted small">{l.structured.monthly_rent === null ? "Rent not confirmed" : `${inr(l.structured.monthly_rent)}/mo`}{l.submitter ? ` · ${l.submitter === "From the brief" ? "from the brief" : `from ${l.submitter}`}` : ""}</span>
                 </span>
                 <span className="dots">

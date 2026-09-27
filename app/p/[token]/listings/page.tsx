@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import PageHeader from "@/app/components/PageHeader";
 import { allParticipants, participantByToken } from "@/lib/participants";
+import { listingRef } from "@/lib/links";
 import { listingViews, STATUS_LABEL } from "@/lib/views";
 import ListingsClient, { type CardData } from "./ListingsClient";
 
@@ -16,6 +17,7 @@ export default async function ListingsPage({ params }: PageProps<"/p/[token]/lis
     const s = v.structured;
     return {
       id: v.id,
+      ref: listingRef(v.ref),
       locality: s.normalized_locality ?? s.location ?? "Locality not confirmed",
       rent: s.monthly_rent,
       deposit: s.security_deposit,

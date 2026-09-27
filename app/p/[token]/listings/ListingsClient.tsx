@@ -11,6 +11,7 @@ const ListingsMap = dynamic(() => import("@/app/components/ListingsMap"), {
 
 export interface CardData {
   id: string;
+  ref: string;
   locality: string;
   rent: number | null;
   deposit: number | null;
@@ -84,7 +85,7 @@ export default function ListingsClient({ cards, storageKey }: { cards: CardData[
     () =>
       shown
         .filter((c) => c.lat !== null && c.lng !== null)
-        .map((c) => ({ id: c.id, lat: c.lat!, lng: c.lng!, label: c.rent ? `₹${Math.round(c.rent / 1000)}k` : "₹?", title: c.locality })),
+        .map((c) => ({ id: c.id, lat: c.lat!, lng: c.lng!, label: c.rent ? `₹${Math.round(c.rent / 1000)}k` : "₹?", title: `${c.ref} · ${c.locality}` })),
     [shown],
   );
   const onSelect = useCallback((id: string) => {
@@ -106,7 +107,10 @@ export default function ListingsClient({ cards, storageKey }: { cards: CardData[
   const card = (c: CardData) => (
     <article id={`l-${c.id}`} key={c.id} className={`card lcard${c.id === selected ? " sel" : ""}`} onClick={() => setSelected(c.id)}>
       <div className="photo-band" style={{ background: band(c.id) }}>
-        {isNew(c) && <span className="new-tag">New</span>}
+        <span className="row" style={{ gap: 6 }}>
+          <span className="ref-tag">{c.ref}</span>
+          {isNew(c) && <span className="new-tag">New</span>}
+        </span>
         {now > 0 && <span className="age-tag">Added {ago(c.submittedAt, now)}</span>}
       </div>
       <div className="rent-line">

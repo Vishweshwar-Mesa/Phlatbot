@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import PageHeader from "@/app/components/PageHeader";
 import { db, must } from "@/lib/db";
 import { allParticipants, participantByToken } from "@/lib/participants";
+import { listingRef } from "@/lib/links";
 import { formatIst } from "@/lib/time";
 import { inr, listingViews, type ListingView } from "@/lib/views";
 import { batchById, batchVotes, isRevealed, latestPublishedBatch, type BatchRun, type VoteRow } from "@/lib/votes";
@@ -63,6 +64,7 @@ export default async function Shortlist({ params, searchParams }: PageProps<"/p/
             {also.map((l) => (
               <div className="person-row" key={l.id}>
                 <span>
+                  <span className="ref-tag" style={{ marginRight: 8 }}>{listingRef(l.ref)}</span>
                   <strong>{l.structured.normalized_locality ?? "Locality not confirmed"}</strong>
                   <span className="muted small"> · {inr(l.structured.monthly_rent)}/mo</span>
                 </span>
@@ -101,7 +103,10 @@ function ShortlistCard({ rank, l, batch, people, votes, meId, token }: {
   return (
     <section className="card">
       <div className="row" style={{ justifyContent: "space-between" }}>
-        <span className="pill accent">#{rank} · qualifies for {a?.overall_rank}</span>
+        <span className="row" style={{ gap: 6 }}>
+          <span className="ref-tag">{listingRef(l.ref)}</span>
+          <span className="pill accent">#{rank} · qualifies for {a?.overall_rank}</span>
+        </span>
         {a?.soft_score != null && <span className="pill">Preference fit {Math.round(a.soft_score * 100)}%</span>}
       </div>
       <div className="rent-line" style={{ marginTop: 10 }}>

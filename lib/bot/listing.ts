@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { FIELD_LABEL, missingHardFields, parseClarification, questionMessage } from "../clarify";
 import { db, must } from "../db";
 import { extractListing } from "../extract";
+import { listingRef } from "../links";
 import { readiness } from "../participants";
 import { readListingPage, URL_RE } from "../scrape";
 import { sendMessage, TgMessage } from "../telegram";
@@ -62,7 +63,7 @@ async function save(s: Sender, l: Listing) {
     })
     .eq("id", l.id)
     .eq("status", "draft")
-    .select("id");
+    .select("id, ref");
   if (res.error?.code === "23505") {
     must(await db().from("listings").delete().eq("id", l.id).select("id"));
     await sendMessage(s.telegramId, "This listing is already in Phlatmatch (same text), so I didn't add it again.");
@@ -72,7 +73,7 @@ async function save(s: Sender, l: Listing) {
   await sendMessage(
     s.telegramId,
     [
-      "Saved to Phlatmatch ✅",
+      `Saved to Phlatmatch ✅  Listing ID: ${listingRef((res.data?.[0] as { ref?: number } | undefined)?.ref)}`,
       "",
       summary(l.structured, l.clarifications),
       "",
