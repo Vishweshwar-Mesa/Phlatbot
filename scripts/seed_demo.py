@@ -1,24 +1,24 @@
-# Usage (from the repo root): python3 scripts/seed_demo.py  -- WIPES all data, then loads the brief-based demo.
+# Usage (from the repo root): python3 scripts/seed_demo.py  -- resets constraints, votes and shortlists, then loads the brief-based demo. Listings (and their IDs) are kept.
 # Seeds clearly-labelled SAMPLE data on production: constraints from the brief, Pune listings, one published shortlist.
 import json, time, urllib.request
 env = dict(l.split("=",1) for l in open(".env.local").read().splitlines() if "=" in l and not l.startswith("#"))
 SU, SK = env["SUPABASE_URL"], env["SUPABASE_SERVICE_ROLE_KEY"]
 U = "https://phlatmatch.vercel.app"
-def req(url, data=None, method=None, sb=False):
-    h = {"apikey": SK, "Authorization": "Bearer " + SK, "Prefer": "return=representation"} if sb else {}
+def req(url, data=None, method=None, sb=False, upsert=False):
+    h = {"apikey": SK, "Authorization": "Bearer " + SK, "Prefer": "return=representation" + (",resolution=merge-duplicates" if upsert else "")} if sb else {}
     h["content-type"] = "application/json"
     r = urllib.request.Request(url, data=json.dumps(data).encode() if data is not None else None, headers=h, method=method)
     try: resp = urllib.request.urlopen(r, timeout=300); return resp.status, resp.read().decode()
     except urllib.error.HTTPError as e: return e.code, e.read().decode()
-sb = lambda path, data=None, method=None: json.loads(req(f"{SU}/rest/v1/{path}", data, method, sb=True)[1] or "null")
+sb = lambda path, data=None, method=None, upsert=False: json.loads(req(f"{SU}/rest/v1/{path}", data, method, sb=True, upsert=upsert)[1] or "null")
 
-# clean slate
+# clean slate. Listings are never deleted: their IDs (PM-001, ...) are permanent, so sample listings
+# are updated in place (matched by dedupe_hash) and every listing goes back to the waiting pool.
+req(f"{SU}/rest/v1/listings?status=neq.draft", {"status": "awaiting_preferences", "published_batch_run_id": None}, "PATCH", sb=True)
 for p in ["votes?created_at=not.is.null", "assessments?created_at=not.is.null", "no_go_confirmations?participant_id=not.is.null",
-          "preferences?participant_id=not.is.null", "rate_limits?key=not.is.null", "listings?submitted_by_telegram_id=eq.0", "batch_runs?id=not.is.null"]:
+          "preferences?participant_id=not.is.null", "rate_limits?key=not.is.null", "batch_runs?id=not.is.null"]:
     req(f"{SU}/rest/v1/{p}", method="DELETE", sb=True)
 req(f"{SU}/rest/v1/participants?id=not.is.null", {"form_submitted_at": None, "telegram_user_id": None}, "PATCH", sb=True)
-# Real Telegram listings are kept; send them back to the waiting pool so they get re-scored with everyone else.
-req(f"{SU}/rest/v1/listings?submitted_by_telegram_id=neq.0&status=neq.draft", {"status": "awaiting_preferences", "published_batch_run_id": None}, "PATCH", sb=True)
 people = {p["name"]: p for p in sb("participants?select=id,name,form_token")}
 
 S = lambda **o: {"location": None, "normalized_locality": None, "monthly_rent": None, "floor": None, "has_lift": None,
@@ -38,9 +38,9 @@ LISTINGS = [
   ("SAMPLE: 3BHK in Viman Nagar", S(normalized_locality="Viman Nagar", bedrooms=3, monthly_rent=69000, floor="3 of 8", has_lift=True, has_parking=True, bathrooms=3, bachelor_friendly=True, furnishing="furnished", security_deposit=207000, other_notes="balcony, near airport, gym")),
 ]
 for i, (title, s) in enumerate(LISTINGS):
-    sb("listings", {"raw_text": title, "submitted_by_telegram_id": 0, "submitted_by_name": ("From the brief" if title.startswith("FROM THE BRIEF") else "Sample data"),
-       "structured": s, "extraction_status": "ok", "status": "awaiting_preferences", "confirmed_at": "2026-09-27T06:00:00Z",
-       "submitted_at": "2026-09-27T06:00:00Z", "dedupe_hash": f"sample-{i}"}, "POST")
+    sb("listings?on_conflict=dedupe_hash", {"raw_text": title, "submitted_by_telegram_id": 0, "submitted_by_name": ("From the brief" if title.startswith("FROM THE BRIEF") else "Sample data"),
+       "structured": s, "extraction_status": "ok", "status": "awaiting_preferences", "confirmed_at": f"2026-09-27T06:{i:02d}:00Z",
+       "submitted_at": f"2026-09-27T06:{i:02d}:00Z", "dedupe_hash": f"sample-{i}", "published_batch_run_id": None}, "POST", upsert=True)
 
 def approve(name, label):
     tok = people[name]["form_token"]
